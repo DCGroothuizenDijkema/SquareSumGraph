@@ -39,7 +39,7 @@ impl<T> Scalar for T where T:
 // Structs
 //
 
-struct Node<T>
+pub struct Node<T>
   where T: Scalar
 {
   val: T,
@@ -64,7 +64,7 @@ impl<T> Node<T>
   }
 }
 
-struct Edge<T>
+pub struct Edge<T>
   where T: Scalar
 {
   nodes: Vec<Rc<RefCell<Node<T>>>>,
