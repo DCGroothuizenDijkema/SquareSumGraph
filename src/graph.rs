@@ -1,4 +1,9 @@
 
+
+//
+// Traits
+//
+
 pub trait Scalar:
   std::cmp::PartialEq
   + std::marker::Copy
@@ -11,6 +16,10 @@ impl<T> Scalar for T where T:
 {
 }
 
+
+//
+// Structs
+//
 
 struct Node<'a,T>
   where T: Scalar
@@ -41,9 +50,23 @@ pub struct Graph<'a,T>
   edges: std::vec::Vec<Edge<'a,T>>,
 }
 
+impl<'a,T> Graph<'a,T>
+  where T: Scalar
+{
+  fn new() -> Self
+  {
+    Graph{nodes:std::vec::Vec::<Node<'a,T>>::new(),edges:std::vec::Vec::<Edge<'a,T>>::new()}
+  }
+}
+
+
+//
+// Tests
+//
+
 #[cfg(test)]
 mod node_tests {
-  use super::*;
+  use super::Node;
 
   #[test]
   fn test_new()
@@ -60,5 +83,18 @@ mod node_tests {
     let node=Node::<char>::new('c');
     assert!(node.val=='c');
     assert!(node.edges.is_empty());
+  }
+}
+
+#[cfg(test)]
+mod graph_tests {
+  use super::Graph;
+
+  #[test]
+  fn test_new()
+  {
+    let graph=Graph::<usize>::new();
+    assert!(graph.nodes.is_empty());
+    assert!(graph.edges.is_empty());
   }
 }
