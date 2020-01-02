@@ -57,6 +57,16 @@ impl<'a,T> Graph<'a,T>
   {
     Graph{nodes:std::vec::Vec::<Node<'a,T>>::new(),edges:std::vec::Vec::<Edge<'a,T>>::new()}
   }
+
+  fn add_node(&mut self,val: T) -> std::result::Result<T,usize>
+  {
+    for node in &self.nodes
+    {
+      if node.val==val { return std::result::Result::Err(1); }
+    }
+    self.nodes.push(Node::new(val));
+    std::result::Result::Ok(val)
+  }
 }
 
 
@@ -96,5 +106,42 @@ mod graph_tests {
     let graph=Graph::<usize>::new();
     assert!(graph.nodes.is_empty());
     assert!(graph.edges.is_empty());
+  }
+
+  #[test]
+  fn test_add_node()
+  {
+    // test a valid insertion
+    let mut graph=Graph::<usize>::new();
+    let res: std::result::Result<usize,usize>=graph.add_node(2);
+    assert!(res.is_ok());
+    match res
+    {
+      Ok(x) => assert!(x==2),
+      _     => (),
+    }
+    assert!(graph.nodes[0].val==2);
+    assert!(graph.nodes.len()==1);
+    
+    // test an invalid insertion
+    let res: std::result::Result<usize,usize>=graph.add_node(2);
+    assert!(res.is_err());
+    match res
+    {
+      Err(x) => assert!(x==1),
+      _     => (),
+    }
+    assert!(graph.nodes.len()==1);
+
+    // test another valid insertion
+    let res: std::result::Result<usize,usize>=graph.add_node(1729);
+    assert!(res.is_ok());
+    match res
+    {
+      Ok(x) => assert!(x==1729),
+      _     => (),
+    }
+    assert!(graph.nodes.len()==2);
+    assert!(graph.nodes[1].val==1729);
   }
 }
