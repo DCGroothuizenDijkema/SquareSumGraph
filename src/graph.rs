@@ -101,14 +101,12 @@ impl<T> Graph<T>
   /// * `res` : Result<Rc<RefCell<Node<T>>>,usize>
   ///   `res` is Result::Ok if the node was added. res::OK contains an Rc<RefCell<>> to the Node.
   ///   `res` is Result::Err if the node already exists. res::Err contains `1`.
-  fn add_node(&mut self,val: T) -> Result<Rc<RefCell<Node<T>>>,usize>
+  fn add_node(&mut self,val: T) -> Result<Rc<RefCell<Node<T>>>,T>
   {
-    for node in &self.nodes
-    {
-      if node.borrow().val==val { return Result::Err(1); }
-    }
+    if self.find(val).is_some() { return Result::Err(val); }
+
     let nd: Rc<RefCell<Node<T>>>=Rc::new(RefCell::new(Node::new(val)));
-    let res: Result<Rc<RefCell<Node<T>>>,usize>=Result::Ok(Rc::clone(&nd));
+    let res: Result<Rc<RefCell<Node<T>>>,T>=Result::Ok(Rc::clone(&nd));
 
     self.nodes.push(nd);
     res
@@ -222,7 +220,7 @@ mod graph_tests
     assert!(res.is_err());
     match res
     {
-      Err(x) => assert!(x==1),
+      Err(x) => assert!(x==2),
       _     => (),
     }
     assert!(graph.nodes.len()==1);
