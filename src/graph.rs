@@ -225,6 +225,7 @@ mod graph_tests
       _      => (),
     }
     assert!(graph.edges.is_empty());
+
     let nd_one: std::rc::Rc<Node<i32>>=graph.add_node(173).unwrap();
     let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
@@ -234,11 +235,26 @@ mod graph_tests
       _      => (),
     }
     assert!(graph.edges.is_empty());
+
     let nd_two: std::rc::Rc<Node<i32>>=graph.add_node(-98).unwrap();
     let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,-98);
+    assert!(graph.edges.len()==1);
     assert!(res.is_ok());
     let edge: std::rc::Rc<Edge<i32>>=res.unwrap();
     assert!(&*nd_one as *const Node<i32> == &*edge.nodes[0] as *const Node<i32>);
     assert!(&*nd_two as *const Node<i32> == &*edge.nodes[1] as *const Node<i32>);
+
+    let nd_three: std::rc::Rc<Node<i32>>=graph.add_node(1).unwrap();
+    let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,1);
+    assert!(graph.edges.len()==2);
+    assert!(res.is_ok());
+    let edge: std::rc::Rc<Edge<i32>>=res.unwrap();
+    assert!(&*nd_one as *const Node<i32> == &*edge.nodes[0] as *const Node<i32>);
+    assert!(&*nd_three as *const Node<i32> == &*edge.nodes[1] as *const Node<i32>);
+
+    assert!(&*graph.nodes[0] as *const Node<i32> == &*graph.edges[0].nodes[0] as *const Node<i32>);
+    assert!(&*graph.nodes[0] as *const Node<i32> == &*graph.edges[1].nodes[0] as *const Node<i32>);
+    assert!(&*graph.nodes[1] as *const Node<i32> == &*graph.edges[0].nodes[1] as *const Node<i32>);
+    assert!(&*graph.nodes[2] as *const Node<i32> == &*graph.edges[1].nodes[1] as *const Node<i32>);
   }
 }
