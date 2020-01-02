@@ -10,6 +10,7 @@
 
 
 #![allow(dead_code)]
+#![allow(unused_variables)]
 
 //
 // Traits
@@ -95,7 +96,7 @@ impl<T> Graph<T>
 
     let edge: std::rc::Rc<Edge<T>>=std::rc::Rc::new(Edge{nodes:vec![std::rc::Rc::clone(&node_one),std::rc::Rc::clone(&node_two)]});
     let res: std::result::Result<std::rc::Rc<Edge<T>>,T>=std::result::Result::Ok(std::rc::Rc::clone(&edge));
-    
+
     self.edges.push(edge);
     res
   }
