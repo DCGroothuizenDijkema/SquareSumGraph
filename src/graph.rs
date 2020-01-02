@@ -99,8 +99,8 @@ impl<T> Graph<T>
   /// 
   /// # Returns
   /// * `res` : Result<Rc<RefCell<Node<T>>>,usize>
-  ///   `res` is Result::Ok if the node was added. res::OK contains an Rc<RefCell<>> to the Node.
-  ///   `res` is Result::Err if the node already exists. res::Err contains `1`.
+  ///   `res` is Result::Ok if the Node was added. res::OK contains an Rc<RefCell<>> to the Node.
+  ///   `res` is Result::Err if the Node already exists. res::Err contains `val`.
   fn add_node(&mut self,val: T) -> Result<Rc<RefCell<Node<T>>>,T>
   {
     if self.find(val).is_some() { return Result::Err(val); }
@@ -112,6 +112,16 @@ impl<T> Graph<T>
     res
   }
 
+  /// Connect two Nodes in the Graph.
+  /// 
+  /// # Parameters
+  /// * `val_one`,`val_two` : T
+  ///   The values of the two Nodes to connect.
+  /// 
+  /// # Returns
+  /// * `res` : Result<Rc<RefCell<Edge<T>>>,T>
+  ///   `res` is Result::Ok if the Nodes were connected. res::OK contains an Rc<RefCell<>> to the Edge connecting the Nodes.
+  ///   `res` is Result::Err if either of the Nodes do not exist. res::Err contains the first value which did not exist.
   fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<RefCell<Edge<T>>>,T>
   {
     let node_one: Option<Rc<RefCell<Node<T>>>>=self.find(val_one);
@@ -140,14 +150,9 @@ impl<T> Graph<T>
   ///   The value of the Node to find.
   /// 
   /// # Returns
-  /// * `res` : Result<Rc<RefCell<Node<T>>>,usize>
-  ///   `res` is Result::Ok if the node was added. res::OK contains an Rc<RefCell<>> to the Node.
-  ///   `res` is Result::Err if the node already exists. res::Err contains `1`.
-  /// 
-  /// # Returns
   /// * `res` : Option<Rc<RefCell<Node<T>>>>
-  ///   `res` is Option::Some if the node was found. res::Some contains an Rc<RefCell<>> to the Node.
-  ///   `res` is Option::None if the node could not be found.
+  ///   `res` is Option::Some if the Node was found. res::Some contains an Rc<RefCell<>> to the Node.
+  ///   `res` is Option::None if the Node could not be found.
   fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
   {
     for node in &self.nodes
