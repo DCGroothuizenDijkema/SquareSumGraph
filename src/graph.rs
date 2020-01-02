@@ -172,6 +172,18 @@ impl<T> Graph<T>
   }
 }
 
+impl<T> std::iter::IntoIterator for Graph<T>
+  where T: Scalar
+{
+  type Item=Rc<RefCell<Node<T>>>;
+  type IntoIter=std::vec::IntoIter<Self::Item>;
+
+  fn into_iter(self) -> Self::IntoIter
+  {
+    self.nodes.into_iter()
+  }
+}
+
 
 //
 // Tests
@@ -333,5 +345,24 @@ mod graph_tests
     assert!(&*nd_one.borrow().edges[1].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
     assert!(&*nd_two.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_one.borrow()  as *const Edge<i32>);
     assert!(&*nd_three.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
+  }
+
+  #[test]
+  fn test_iter()
+  {
+    let mut gr: Graph<char>=Graph::<char>::new();
+    let vals: [char;4]=['a','b','c','z'];
+    
+    for val in vals.into_iter()
+    {
+      gr.add_node(*val).unwrap();
+    }
+
+    let mut itr: usize=0;
+    for nd in gr.into_iter()
+    {
+      assert!(nd.borrow().val==vals[itr]);
+      itr+=1;
+    }
   }
 }
