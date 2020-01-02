@@ -1,4 +1,13 @@
 
+//+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+//
+//                                                                                                                                       //
+// graph.rs                                                                                                                              //
+//                                                                                                                                       //
+// D. C. Groothuizen Dijkema - January, 2020                                                                                             //
+//+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+//
+
+// Graph theory related classes, traits, and impls
+
 
 //
 // Traits
@@ -67,6 +76,20 @@ impl<'a,T> Graph<'a,T>
     self.nodes.push(Node::new(val));
     std::result::Result::Ok(val)
   }
+
+  fn connect(&mut self,val_one: T,val_two: T)
+  {
+
+  }
+
+  fn find(&mut self,val: T) -> std::option::Option<&Node<T>>
+  {
+    for node in &self.nodes
+    {
+      if node.val==val { return std::option::Option::Some(node); }
+    }
+    std::option::Option::None
+  }
 }
 
 
@@ -75,7 +98,8 @@ impl<'a,T> Graph<'a,T>
 //
 
 #[cfg(test)]
-mod node_tests {
+mod node_tests
+{
   use super::Node;
 
   #[test]
@@ -97,8 +121,9 @@ mod node_tests {
 }
 
 #[cfg(test)]
-mod graph_tests {
-  use super::Graph;
+mod graph_tests
+{
+  use super::{Graph,Node};
 
   #[test]
   fn test_new()
@@ -143,5 +168,29 @@ mod graph_tests {
     }
     assert!(graph.nodes.len()==2);
     assert!(graph.nodes[1].val==1729);
+  }
+
+  #[test]
+  fn test_find()
+  {
+    let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
+    let mut graph=Graph::<f64>::new();
+    
+    // add the values
+    for &val in vals.iter()
+    {
+      graph.add_node(val).unwrap();
+    }
+    // values that have been added can be found
+    for &val in vals.iter()
+    {
+      let res: std::option::Option<&Node<f64>>=graph.find(val);
+      assert!(res.is_some());
+      let nd: &Node<f64>=res.unwrap();
+      assert!(nd.val==val);
+    }
+    // a value that hasn't been added cannot be found
+    let res: std::option::Option<&Node<f64>>=graph.find(2.93);
+    assert!(res.is_none());
   }
 }
