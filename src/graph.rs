@@ -32,41 +32,41 @@ impl<T> Scalar for T where T:
 // Structs
 //
 
-struct Node<'a,T>
+struct Node<T>
   where T: Scalar
 {
   val: T,
-  edges: std::vec::Vec<&'a Edge<'a,T>>
+  edges: std::vec::Vec<std::rc::Rc<Edge<T>>>,
 }
 
-impl<'a,T> Node<'a,T>
+impl<T> Node<T>
   where T: Scalar
 {
   fn new(val: T) -> Self
   {
-    Node{val:val,edges:std::vec::Vec::<&'a Edge<'a,T>>::new()}
+    Node{val:val,edges:std::vec::Vec::<std::rc::Rc<Edge<T>>>::new()}
   }
 }
 
-struct Edge<'a,T>
-  where T: Scalar
-  {
-    nodes: std::vec::Vec<&'a Node<'a,T>>
-}
-
-pub struct Graph<'a,T>
+struct Edge<T>
   where T: Scalar
 {
-  nodes: std::vec::Vec<Node<'a,T>>,
-  edges: std::vec::Vec<Edge<'a,T>>,
+  nodes: std::vec::Vec<std::rc::Rc<Node<T>>>,
 }
 
-impl<'a,T> Graph<'a,T>
+pub struct Graph<T>
+  where T: Scalar
+{
+  nodes: std::vec::Vec<std::rc::Rc<Node<T>>>,
+  edges: std::vec::Vec<std::rc::Rc<Edge<T>>>,
+}
+
+impl<T> Graph<T>
   where T: Scalar
 {
   fn new() -> Self
   {
-    Graph{nodes:std::vec::Vec::<Node<'a,T>>::new(),edges:std::vec::Vec::<Edge<'a,T>>::new()}
+    Graph{nodes:std::vec::Vec::<std::rc::Rc<Node<T>>>::new(),edges:std::vec::Vec::<std::rc::Rc<Edge<T>>>::new()}
   }
 
   fn add_node(&mut self,val: T) -> std::result::Result<T,usize>
@@ -75,22 +75,23 @@ impl<'a,T> Graph<'a,T>
     {
       if node.val==val { return std::result::Result::Err(1); }
     }
-    self.nodes.push(Node::new(val));
+    self.nodes.push(std::rc::Rc::new(Node::new(val)));
     std::result::Result::Ok(val)
   }
 
   fn connect(&mut self,val_one: T,val_two: T) -> std::result::Result<usize,T>
   {
-    if self.find(val_one).is_none() { return std::result::Result::Err(val_one); }
-    if self.find(val_two).is_none() { return std::result::Result::Err(val_two); }
+    let node_one: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_one);
+    let node_two: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_two);
+    
     std::result::Result::Ok(0)
   }
 
-  fn find(&mut self,val: T) -> std::option::Option<&Node<T>>
+  fn find(&self,val: T) -> std::option::Option<std::rc::Rc<Node<T>>>
   {
     for node in &self.nodes
     {
-      if node.val==val { return std::option::Option::Some(node); }
+      if node.val==val { return std::option::Option::Some(std::rc::Rc::clone(&node)); }
     }
     std::option::Option::None
   }
@@ -188,13 +189,13 @@ mod graph_tests
     // values that have been added can be found
     for &val in vals.iter()
     {
-      let res: std::option::Option<&Node<f64>>=graph.find(val);
+      let res: std::option::Option<std::rc::Rc<Node<f64>>>=graph.find(val);
       assert!(res.is_some());
-      let nd: &Node<f64>=res.unwrap();
+      let nd: std::rc::Rc<Node<f64>>=res.unwrap();
       assert!(nd.val==val);
     }
     // a value that hasn't been added cannot be found
-    let res: std::option::Option<&Node<f64>>=graph.find(2.93);
+    let res: std::option::Option<std::rc::Rc<Node<f64>>>=graph.find(2.93);
     assert!(res.is_none());
   }
 
