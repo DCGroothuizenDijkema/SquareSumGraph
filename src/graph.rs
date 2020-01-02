@@ -9,6 +9,8 @@
 // Graph theory related classes, traits, and impls
 
 
+#![allow(dead_code)]
+
 //
 // Traits
 //
