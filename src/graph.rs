@@ -18,6 +18,7 @@ use std::vec::Vec;
 use std::option::Option;
 use std::result::Result;
 
+
 //
 // Traits
 //
@@ -58,9 +59,14 @@ impl<T> Node<T>
   /// # Returns
   /// * `node` : Node<T>
   ///   A new Node with given value.
-  fn new(val: T) -> Self
+  pub fn new(val: T) -> Self
   {
     Node{val:val,edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
+  }
+
+  pub fn val(&self) -> T
+  {
+    self.val
   }
 }
 
@@ -85,7 +91,7 @@ impl<T> Graph<T>
   /// # Returns
   /// * `graph` : Graph<T>
   ///   A new Graph.
-  fn new() -> Self
+  pub fn new() -> Self
   {
     Graph{nodes:Vec::<Rc<RefCell<Node<T>>>>::new(),edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
   }
@@ -101,13 +107,15 @@ impl<T> Graph<T>
   /// * `res` : Result<Rc<RefCell<Node<T>>>,usize>
   ///   `res` is Result::Ok if the Node was added. res::OK contains an Rc<RefCell<>> to the Node.
   ///   `res` is Result::Err if the Node already exists. res::Err contains `val`.
-  fn add_node(&mut self,val: T) -> Result<Rc<RefCell<Node<T>>>,T>
+  pub fn add_node(&mut self,val: T) -> Result<Rc<RefCell<Node<T>>>,T>
   {
+    // check the Node doesn't already exist
     if self.find(val).is_some() { return Result::Err(val); }
 
+    // construct the Node and the result from the NOde
     let nd: Rc<RefCell<Node<T>>>=Rc::new(RefCell::new(Node::new(val)));
     let res: Result<Rc<RefCell<Node<T>>>,T>=Result::Ok(Rc::clone(&nd));
-
+    // add the Node to the Graph
     self.nodes.push(nd);
     res
   }
@@ -122,23 +130,24 @@ impl<T> Graph<T>
   /// * `res` : Result<Rc<RefCell<Edge<T>>>,T>
   ///   `res` is Result::Ok if the Nodes were connected. res::OK contains an Rc<RefCell<>> to the Edge connecting the Nodes.
   ///   `res` is Result::Err if either of the Nodes do not exist. res::Err contains the first value which did not exist.
-  fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<RefCell<Edge<T>>>,T>
+  pub fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<RefCell<Edge<T>>>,T>
   {
+    // check both Nodes exist
     let node_one: Option<Rc<RefCell<Node<T>>>>=self.find(val_one);
-    let node_two: Option<Rc<RefCell<Node<T>>>>=self.find(val_two);
-
     if node_one.is_none() { return Result::Err(val_one); }
+    let node_two: Option<Rc<RefCell<Node<T>>>>=self.find(val_two);
     if node_two.is_none() { return Result::Err(val_two); }
 
+    // retrieve the Nodes
     let node_one: Rc<RefCell<Node<T>>>=node_one.unwrap();
     let node_two: Rc<RefCell<Node<T>>>=node_two.unwrap();
-
+    // construct the Edge from the two Nodes and the result from the Edge
     let edge: Rc<RefCell<Edge<T>>>=Rc::new(RefCell::new(Edge{nodes:vec![Rc::clone(&node_one),Rc::clone(&node_two)]}));
     let res: Result<Rc<RefCell<Edge<T>>>,T>=Result::Ok(Rc::clone(&edge));
-
+    // add the Edge to the two Nodes
     node_one.borrow_mut().edges.push(Rc::clone(&edge));
     node_two.borrow_mut().edges.push(Rc::clone(&edge));
-
+    // add the Edge to the Graph
     self.edges.push(edge);
     res
   }
@@ -153,7 +162,7 @@ impl<T> Graph<T>
   /// * `res` : Option<Rc<RefCell<Node<T>>>>
   ///   `res` is Option::Some if the Node was found. res::Some contains an Rc<RefCell<>> to the Node.
   ///   `res` is Option::None if the Node could not be found.
-  fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
+  pub fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
   {
     for node in &self.nodes
     {
