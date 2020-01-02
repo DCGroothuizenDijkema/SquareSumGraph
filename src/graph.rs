@@ -135,6 +135,21 @@ impl<T> Graph<T>
     res
   }
 
+  /// Find a node in the Graph
+  /// 
+  /// # Parameters
+  /// * `val` : T
+  ///   The value of the Node to find.
+  /// 
+  /// # Returns
+  /// * `res` : Result<Rc<RefCell<Node<T>>>,usize>
+  ///   `res` is Result::Ok if the node was added. res::OK contains an Rc<RefCell<>> to the Node.
+  ///   `res` is Result::Err if the node already exists. res::Err contains `1`.
+  /// 
+  /// # Returns
+  /// * `res` : Option<Rc<RefCell<Node<T>>>>
+  ///   `res` is Option::Some if the node was found. res::Some contains an Rc<RefCell<>> to the Node.
+  ///   `res` is Option::None if the node could not be found.
   fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
   {
     for node in &self.nodes
