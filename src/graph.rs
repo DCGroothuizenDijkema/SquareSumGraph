@@ -82,7 +82,7 @@ impl<T> Graph<T>
     res
   }
 
-  fn connect(&mut self,val_one: T,val_two: T) -> std::result::Result<usize,T>
+  fn connect(&mut self,val_one: T,val_two: T) -> std::result::Result<std::rc::Rc<Edge<T>>,T>
   {
     let node_one: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_one);
     let node_two: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_two);
@@ -93,7 +93,11 @@ impl<T> Graph<T>
     let node_one: std::rc::Rc<Node<T>>=node_one.unwrap();
     let node_two: std::rc::Rc<Node<T>>=node_two.unwrap();
 
-    std::result::Result::Ok(0)
+    let edge: std::rc::Rc<Edge<T>>=std::rc::Rc::new(Edge{nodes:vec![std::rc::Rc::clone(&node_one),std::rc::Rc::clone(&node_two)]});
+    let res: std::result::Result<std::rc::Rc<Edge<T>>,T>=std::result::Result::Ok(std::rc::Rc::clone(&edge));
+    
+    self.edges.push(edge);
+    res
   }
 
   fn find(&self,val: T) -> std::option::Option<std::rc::Rc<Node<T>>>
@@ -137,7 +141,7 @@ mod node_tests
 #[cfg(test)]
 mod graph_tests
 {
-  use super::{Graph,Node};
+  use super::{Graph,Node,Edge};
 
   #[test]
   fn test_new()
@@ -213,7 +217,7 @@ mod graph_tests
   {
     // test error
     let mut graph=Graph::<i32>::new();
-    let res: std::result::Result<usize,i32>=graph.connect(173,-98);
+    let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
     match res
     {
@@ -221,8 +225,8 @@ mod graph_tests
       _      => (),
     }
     assert!(graph.edges.is_empty());
-    graph.add_node(173).unwrap();
-    let res: std::result::Result<usize,i32>=graph.connect(173,-98);
+    let nd_one: std::rc::Rc<Node<i32>>=graph.add_node(173).unwrap();
+    let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
     match res
     {
@@ -230,13 +234,11 @@ mod graph_tests
       _      => (),
     }
     assert!(graph.edges.is_empty());
-    graph.add_node(-98).unwrap();
-    let res: std::result::Result<usize,i32>=graph.connect(173,-98);
+    let nd_two: std::rc::Rc<Node<i32>>=graph.add_node(-98).unwrap();
+    let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,-98);
     assert!(res.is_ok());
-    match res
-    {
-      Ok(x) => assert!(x==0),
-      _     => (),
-    }
+    let edge: std::rc::Rc<Edge<i32>>=res.unwrap();
+    assert!(&*nd_one as *const Node<i32> == &*edge.nodes[0] as *const Node<i32>);
+    assert!(&*nd_two as *const Node<i32> == &*edge.nodes[1] as *const Node<i32>);
   }
 }
