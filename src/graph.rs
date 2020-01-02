@@ -43,7 +43,7 @@ struct Node<T>
   where T: Scalar
 {
   val: T,
-  edges: Vec<Rc<Edge<T>>>,
+  edges: Vec<Rc<RefCell<Edge<T>>>>,
 }
 
 impl<T> Node<T>
@@ -51,21 +51,21 @@ impl<T> Node<T>
 {
   fn new(val: T) -> Self
   {
-    Node{val:val,edges:Vec::<Rc<Edge<T>>>::new()}
+    Node{val:val,edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
   }
 }
 
 struct Edge<T>
   where T: Scalar
 {
-  nodes: Vec<Rc<Node<T>>>,
+  nodes: Vec<Rc<RefCell<Node<T>>>>,
 }
 
 pub struct Graph<T>
   where T: Scalar
 {
-  nodes: Vec<Rc<Node<T>>>,
-  edges: Vec<Rc<Edge<T>>>,
+  nodes: Vec<Rc<RefCell<Node<T>>>>,
+  edges: Vec<Rc<RefCell<Edge<T>>>>,
 }
 
 impl<T> Graph<T>
@@ -73,45 +73,45 @@ impl<T> Graph<T>
 {
   fn new() -> Self
   {
-    Graph{nodes:Vec::<Rc<Node<T>>>::new(),edges:Vec::<Rc<Edge<T>>>::new()}
+    Graph{nodes:Vec::<Rc<RefCell<Node<T>>>>::new(),edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
   }
 
-  fn add_node(&mut self,val: T) -> Result<Rc<Node<T>>,usize>
+  fn add_node(&mut self,val: T) -> Result<Rc<RefCell<Node<T>>>,usize>
   {
     for node in &self.nodes
     {
-      if node.val==val { return Result::Err(1); }
+      if node.borrow().val==val { return Result::Err(1); }
     }
-    let nd: Rc<Node<T>>=Rc::new(Node::new(val));
-    let res: Result<Rc<Node<T>>,usize>=Result::Ok(Rc::clone(&nd));
+    let nd: Rc<RefCell<Node<T>>>=Rc::new(RefCell::new(Node::new(val)));
+    let res: Result<Rc<RefCell<Node<T>>>,usize>=Result::Ok(Rc::clone(&nd));
 
     self.nodes.push(nd);
     res
   }
 
-  fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<Edge<T>>,T>
+  fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<RefCell<Edge<T>>>,T>
   {
-    let node_one: Option<Rc<Node<T>>>=self.find(val_one);
-    let node_two: Option<Rc<Node<T>>>=self.find(val_two);
+    let node_one: Option<Rc<RefCell<Node<T>>>>=self.find(val_one);
+    let node_two: Option<Rc<RefCell<Node<T>>>>=self.find(val_two);
 
     if node_one.is_none() { return Result::Err(val_one); }
     if node_two.is_none() { return Result::Err(val_two); }
 
-    let node_one: Rc<Node<T>>=node_one.unwrap();
-    let node_two: Rc<Node<T>>=node_two.unwrap();
+    let node_one: Rc<RefCell<Node<T>>>=node_one.unwrap();
+    let node_two: Rc<RefCell<Node<T>>>=node_two.unwrap();
 
-    let edge: Rc<Edge<T>>=Rc::new(Edge{nodes:vec![Rc::clone(&node_one),Rc::clone(&node_two)]});
-    let res: Result<Rc<Edge<T>>,T>=Result::Ok(Rc::clone(&edge));
+    let edge: Rc<RefCell<Edge<T>>>=Rc::new(RefCell::new(Edge{nodes:vec![Rc::clone(&node_one),Rc::clone(&node_two)]}));
+    let res: Result<Rc<RefCell<Edge<T>>>,T>=Result::Ok(Rc::clone(&edge));
 
     self.edges.push(edge);
     res
   }
 
-  fn find(&self,val: T) -> Option<Rc<Node<T>>>
+  fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
   {
     for node in &self.nodes
     {
-      if node.val==val { return Option::Some(Rc::clone(&node)); }
+      if node.borrow().val==val { return Option::Some(Rc::clone(&node)); }
     }
     Option::None
   }
@@ -164,18 +164,18 @@ mod graph_tests
   {
     // test a valid insertion
     let mut graph=Graph::<usize>::new();
-    let res: Result<Rc<Node<usize>>,usize>=graph.add_node(2);
+    let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(2);
     assert!(res.is_ok());
     match res
     {
-      Ok(x) => assert!(x.val==2),
+      Ok(x) => assert!(x.borrow().val==2),
       _     => (),
     }
-    assert!(graph.nodes[0].val==2);
+    assert!(graph.nodes[0].borrow().val==2);
     assert!(graph.nodes.len()==1);
     
     // test an invalid insertion
-    let res: Result<Rc<Node<usize>>,usize>=graph.add_node(2);
+    let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(2);
     assert!(res.is_err());
     match res
     {
@@ -185,15 +185,15 @@ mod graph_tests
     assert!(graph.nodes.len()==1);
 
     // test another valid insertion
-    let res: Result<Rc<Node<usize>>,usize>=graph.add_node(1729);
+    let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(1729);
     assert!(res.is_ok());
     match res
     {
-      Ok(x) => assert!(x.val==1729),
+      Ok(x) => assert!(x.borrow().val==1729),
       _     => (),
     }
     assert!(graph.nodes.len()==2);
-    assert!(graph.nodes[1].val==1729);
+    assert!(graph.nodes[1].borrow().val==1729);
   }
 
   #[test]
@@ -210,13 +210,13 @@ mod graph_tests
     // values that have been added can be found
     for &val in vals.iter()
     {
-      let res: Option<Rc<Node<f64>>>=graph.find(val);
+      let res: Option<Rc<RefCell<Node<f64>>>>=graph.find(val);
       assert!(res.is_some());
-      let nd: Rc<Node<f64>>=res.unwrap();
-      assert!(nd.val==val);
+      let nd: Rc<RefCell<Node<f64>>>=res.unwrap();
+      assert!(nd.borrow().val==val);
     }
     // a value that hasn't been added cannot be found
-    let res: Option<Rc<Node<f64>>>=graph.find(2.93);
+    let res: Option<Rc<RefCell<Node<f64>>>>=graph.find(2.93);
     assert!(res.is_none());
   }
 
@@ -225,7 +225,7 @@ mod graph_tests
   {
     // test error
     let mut graph=Graph::<i32>::new();
-    let res: Result<Rc<Edge<i32>>,i32>=graph.connect(173,-98);
+    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
     match res
     {
@@ -234,8 +234,8 @@ mod graph_tests
     }
     assert!(graph.edges.is_empty());
 
-    let nd_one: Rc<Node<i32>>=graph.add_node(173).unwrap();
-    let res: Result<Rc<Edge<i32>>,i32>=graph.connect(173,-98);
+    let nd_one: Rc<RefCell<Node<i32>>>=graph.add_node(173).unwrap();
+    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
     match res
     {
@@ -244,25 +244,25 @@ mod graph_tests
     }
     assert!(graph.edges.is_empty());
 
-    let nd_two: Rc<Node<i32>>=graph.add_node(-98).unwrap();
-    let res: Result<Rc<Edge<i32>>,i32>=graph.connect(173,-98);
+    let nd_two: Rc<RefCell<Node<i32>>>=graph.add_node(-98).unwrap();
+    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
     assert!(graph.edges.len()==1);
     assert!(res.is_ok());
-    let edge: Rc<Edge<i32>>=res.unwrap();
-    assert!(&*nd_one as *const Node<i32> == &*edge.nodes[0] as *const Node<i32>);
-    assert!(&*nd_two as *const Node<i32> == &*edge.nodes[1] as *const Node<i32>);
+    let edge: Rc<RefCell<Edge<i32>>>=res.unwrap();
+    assert!(&*nd_one.borrow() as *const Node<i32> == &*edge.borrow().nodes[0].borrow() as *const Node<i32>);
+    assert!(&*nd_two.borrow() as *const Node<i32> == &*edge.borrow().nodes[1].borrow() as *const Node<i32>);
 
-    let nd_three: Rc<Node<i32>>=graph.add_node(1).unwrap();
-    let res: Result<Rc<Edge<i32>>,i32>=graph.connect(173,1);
+    let nd_three: Rc<RefCell<Node<i32>>>=graph.add_node(1).unwrap();
+    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,1);
     assert!(graph.edges.len()==2);
     assert!(res.is_ok());
-    let edge: Rc<Edge<i32>>=res.unwrap();
-    assert!(&*nd_one as *const Node<i32> == &*edge.nodes[0] as *const Node<i32>);
-    assert!(&*nd_three as *const Node<i32> == &*edge.nodes[1] as *const Node<i32>);
+    let edge: Rc<RefCell<Edge<i32>>>=res.unwrap();
+    assert!(&*nd_one.borrow() as *const Node<i32> == &*edge.borrow().nodes[0].borrow() as *const Node<i32>);
+    assert!(&*nd_three.borrow() as *const Node<i32> == &*edge.borrow().nodes[1].borrow() as *const Node<i32>);
 
-    assert!(&*graph.nodes[0] as *const Node<i32> == &*graph.edges[0].nodes[0] as *const Node<i32>);
-    assert!(&*graph.nodes[0] as *const Node<i32> == &*graph.edges[1].nodes[0] as *const Node<i32>);
-    assert!(&*graph.nodes[1] as *const Node<i32> == &*graph.edges[0].nodes[1] as *const Node<i32>);
-    assert!(&*graph.nodes[2] as *const Node<i32> == &*graph.edges[1].nodes[1] as *const Node<i32>);
+    assert!(&*graph.nodes[0].borrow() as *const Node<i32> == &*graph.edges[0].borrow().nodes[0].borrow() as *const Node<i32>);
+    assert!(&*graph.nodes[0].borrow() as *const Node<i32> == &*graph.edges[1].borrow().nodes[0].borrow() as *const Node<i32>);
+    assert!(&*graph.nodes[1].borrow() as *const Node<i32> == &*graph.edges[0].borrow().nodes[1].borrow() as *const Node<i32>);
+    assert!(&*graph.nodes[2].borrow() as *const Node<i32> == &*graph.edges[1].borrow().nodes[1].borrow() as *const Node<i32>);
   }
 }
