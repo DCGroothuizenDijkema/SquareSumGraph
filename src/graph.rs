@@ -90,6 +90,17 @@ impl<T> Graph<T>
     Graph{nodes:Vec::<Rc<RefCell<Node<T>>>>::new(),edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
   }
 
+  /// Create a new Node with a given value and add it to the Graph.
+  /// Cannot add a new Node with the same value as a Node already in the Graph.
+  /// 
+  /// # Parameters
+  /// * `val` : T
+  ///   The value for the Node to take.
+  /// 
+  /// # Returns
+  /// * `res` : Result<Rc<RefCell<Node<T>>>,usize>
+  ///   `res` is Result::Ok if the node was added. res::OK contains an Rc<RefCell<>> to the Node.
+  ///   `res` is Result::Err if the node already exists. res::Err contains `1`.
   fn add_node(&mut self,val: T) -> Result<Rc<RefCell<Node<T>>>,usize>
   {
     for node in &self.nodes
