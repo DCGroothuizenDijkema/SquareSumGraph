@@ -12,6 +12,12 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::vec::Vec;
+use std::option::Option;
+use std::result::Result;
+
 //
 // Traits
 //
@@ -37,7 +43,7 @@ struct Node<T>
   where T: Scalar
 {
   val: T,
-  edges: std::vec::Vec<std::rc::Rc<Edge<T>>>,
+  edges: Vec<Rc<Edge<T>>>,
 }
 
 impl<T> Node<T>
@@ -45,21 +51,21 @@ impl<T> Node<T>
 {
   fn new(val: T) -> Self
   {
-    Node{val:val,edges:std::vec::Vec::<std::rc::Rc<Edge<T>>>::new()}
+    Node{val:val,edges:Vec::<Rc<Edge<T>>>::new()}
   }
 }
 
 struct Edge<T>
   where T: Scalar
 {
-  nodes: std::vec::Vec<std::rc::Rc<Node<T>>>,
+  nodes: Vec<Rc<Node<T>>>,
 }
 
 pub struct Graph<T>
   where T: Scalar
 {
-  nodes: std::vec::Vec<std::rc::Rc<Node<T>>>,
-  edges: std::vec::Vec<std::rc::Rc<Edge<T>>>,
+  nodes: Vec<Rc<Node<T>>>,
+  edges: Vec<Rc<Edge<T>>>,
 }
 
 impl<T> Graph<T>
@@ -67,47 +73,47 @@ impl<T> Graph<T>
 {
   fn new() -> Self
   {
-    Graph{nodes:std::vec::Vec::<std::rc::Rc<Node<T>>>::new(),edges:std::vec::Vec::<std::rc::Rc<Edge<T>>>::new()}
+    Graph{nodes:Vec::<Rc<Node<T>>>::new(),edges:Vec::<Rc<Edge<T>>>::new()}
   }
 
-  fn add_node(&mut self,val: T) -> std::result::Result<std::rc::Rc<Node<T>>,usize>
+  fn add_node(&mut self,val: T) -> Result<Rc<Node<T>>,usize>
   {
     for node in &self.nodes
     {
-      if node.val==val { return std::result::Result::Err(1); }
+      if node.val==val { return Result::Err(1); }
     }
-    let nd: std::rc::Rc<Node<T>>=std::rc::Rc::new(Node::new(val));
-    let res: std::result::Result<std::rc::Rc<Node<T>>,usize>=std::result::Result::Ok(std::rc::Rc::clone(&nd));
+    let nd: Rc<Node<T>>=Rc::new(Node::new(val));
+    let res: Result<Rc<Node<T>>,usize>=Result::Ok(Rc::clone(&nd));
 
     self.nodes.push(nd);
     res
   }
 
-  fn connect(&mut self,val_one: T,val_two: T) -> std::result::Result<std::rc::Rc<Edge<T>>,T>
+  fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<Edge<T>>,T>
   {
-    let node_one: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_one);
-    let node_two: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_two);
+    let node_one: Option<Rc<Node<T>>>=self.find(val_one);
+    let node_two: Option<Rc<Node<T>>>=self.find(val_two);
 
-    if node_one.is_none() { return std::result::Result::Err(val_one); }
-    if node_two.is_none() { return std::result::Result::Err(val_two); }
+    if node_one.is_none() { return Result::Err(val_one); }
+    if node_two.is_none() { return Result::Err(val_two); }
 
-    let node_one: std::rc::Rc<Node<T>>=node_one.unwrap();
-    let node_two: std::rc::Rc<Node<T>>=node_two.unwrap();
+    let node_one: Rc<Node<T>>=node_one.unwrap();
+    let node_two: Rc<Node<T>>=node_two.unwrap();
 
-    let edge: std::rc::Rc<Edge<T>>=std::rc::Rc::new(Edge{nodes:vec![std::rc::Rc::clone(&node_one),std::rc::Rc::clone(&node_two)]});
-    let res: std::result::Result<std::rc::Rc<Edge<T>>,T>=std::result::Result::Ok(std::rc::Rc::clone(&edge));
+    let edge: Rc<Edge<T>>=Rc::new(Edge{nodes:vec![Rc::clone(&node_one),Rc::clone(&node_two)]});
+    let res: Result<Rc<Edge<T>>,T>=Result::Ok(Rc::clone(&edge));
 
     self.edges.push(edge);
     res
   }
 
-  fn find(&self,val: T) -> std::option::Option<std::rc::Rc<Node<T>>>
+  fn find(&self,val: T) -> Option<Rc<Node<T>>>
   {
     for node in &self.nodes
     {
-      if node.val==val { return std::option::Option::Some(std::rc::Rc::clone(&node)); }
+      if node.val==val { return Option::Some(Rc::clone(&node)); }
     }
-    std::option::Option::None
+    Option::None
   }
 }
 
@@ -142,6 +148,7 @@ mod node_tests
 #[cfg(test)]
 mod graph_tests
 {
+  use super::{Rc,Option,Result,RefCell};
   use super::{Graph,Node,Edge};
 
   #[test]
@@ -157,7 +164,7 @@ mod graph_tests
   {
     // test a valid insertion
     let mut graph=Graph::<usize>::new();
-    let res: std::result::Result<std::rc::Rc<Node<usize>>,usize>=graph.add_node(2);
+    let res: Result<Rc<Node<usize>>,usize>=graph.add_node(2);
     assert!(res.is_ok());
     match res
     {
@@ -168,7 +175,7 @@ mod graph_tests
     assert!(graph.nodes.len()==1);
     
     // test an invalid insertion
-    let res: std::result::Result<std::rc::Rc<Node<usize>>,usize>=graph.add_node(2);
+    let res: Result<Rc<Node<usize>>,usize>=graph.add_node(2);
     assert!(res.is_err());
     match res
     {
@@ -178,7 +185,7 @@ mod graph_tests
     assert!(graph.nodes.len()==1);
 
     // test another valid insertion
-    let res: std::result::Result<std::rc::Rc<Node<usize>>,usize>=graph.add_node(1729);
+    let res: Result<Rc<Node<usize>>,usize>=graph.add_node(1729);
     assert!(res.is_ok());
     match res
     {
@@ -203,13 +210,13 @@ mod graph_tests
     // values that have been added can be found
     for &val in vals.iter()
     {
-      let res: std::option::Option<std::rc::Rc<Node<f64>>>=graph.find(val);
+      let res: Option<Rc<Node<f64>>>=graph.find(val);
       assert!(res.is_some());
-      let nd: std::rc::Rc<Node<f64>>=res.unwrap();
+      let nd: Rc<Node<f64>>=res.unwrap();
       assert!(nd.val==val);
     }
     // a value that hasn't been added cannot be found
-    let res: std::option::Option<std::rc::Rc<Node<f64>>>=graph.find(2.93);
+    let res: Option<Rc<Node<f64>>>=graph.find(2.93);
     assert!(res.is_none());
   }
 
@@ -218,7 +225,7 @@ mod graph_tests
   {
     // test error
     let mut graph=Graph::<i32>::new();
-    let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,-98);
+    let res: Result<Rc<Edge<i32>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
     match res
     {
@@ -227,8 +234,8 @@ mod graph_tests
     }
     assert!(graph.edges.is_empty());
 
-    let nd_one: std::rc::Rc<Node<i32>>=graph.add_node(173).unwrap();
-    let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,-98);
+    let nd_one: Rc<Node<i32>>=graph.add_node(173).unwrap();
+    let res: Result<Rc<Edge<i32>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
     match res
     {
@@ -237,19 +244,19 @@ mod graph_tests
     }
     assert!(graph.edges.is_empty());
 
-    let nd_two: std::rc::Rc<Node<i32>>=graph.add_node(-98).unwrap();
-    let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,-98);
+    let nd_two: Rc<Node<i32>>=graph.add_node(-98).unwrap();
+    let res: Result<Rc<Edge<i32>>,i32>=graph.connect(173,-98);
     assert!(graph.edges.len()==1);
     assert!(res.is_ok());
-    let edge: std::rc::Rc<Edge<i32>>=res.unwrap();
+    let edge: Rc<Edge<i32>>=res.unwrap();
     assert!(&*nd_one as *const Node<i32> == &*edge.nodes[0] as *const Node<i32>);
     assert!(&*nd_two as *const Node<i32> == &*edge.nodes[1] as *const Node<i32>);
 
-    let nd_three: std::rc::Rc<Node<i32>>=graph.add_node(1).unwrap();
-    let res: std::result::Result<std::rc::Rc<Edge<i32>>,i32>=graph.connect(173,1);
+    let nd_three: Rc<Node<i32>>=graph.add_node(1).unwrap();
+    let res: Result<Rc<Edge<i32>>,i32>=graph.connect(173,1);
     assert!(graph.edges.len()==2);
     assert!(res.is_ok());
-    let edge: std::rc::Rc<Edge<i32>>=res.unwrap();
+    let edge: Rc<Edge<i32>>=res.unwrap();
     assert!(&*nd_one as *const Node<i32> == &*edge.nodes[0] as *const Node<i32>);
     assert!(&*nd_three as *const Node<i32> == &*edge.nodes[1] as *const Node<i32>);
 
