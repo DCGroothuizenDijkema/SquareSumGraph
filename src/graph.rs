@@ -80,6 +80,11 @@ pub struct Graph<T>
 impl<T> Graph<T>
   where T: Scalar
 {
+  /// Returns a new Graph with an empty Vec of Nodes and Edges.
+  /// 
+  /// # Returns
+  /// * `graph` : Graph<T>
+  ///   A new Graph.
   fn new() -> Self
   {
     Graph{nodes:Vec::<Rc<RefCell<Node<T>>>>::new(),edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
