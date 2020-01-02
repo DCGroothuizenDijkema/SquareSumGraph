@@ -87,6 +87,12 @@ impl<T> Graph<T>
     let node_one: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_one);
     let node_two: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_two);
 
+    if node_one.is_none() { return std::result::Result::Err(val_one); }
+    if node_two.is_none() { return std::result::Result::Err(val_two); }
+
+    let node_one: std::rc::Rc<Node<T>>=node_one.unwrap();
+    let node_two: std::rc::Rc<Node<T>>=node_two.unwrap();
+
     std::result::Result::Ok(0)
   }
 
