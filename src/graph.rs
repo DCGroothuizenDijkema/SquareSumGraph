@@ -69,21 +69,24 @@ impl<T> Graph<T>
     Graph{nodes:std::vec::Vec::<std::rc::Rc<Node<T>>>::new(),edges:std::vec::Vec::<std::rc::Rc<Edge<T>>>::new()}
   }
 
-  fn add_node(&mut self,val: T) -> std::result::Result<T,usize>
+  fn add_node(&mut self,val: T) -> std::result::Result<std::rc::Rc<Node<T>>,usize>
   {
     for node in &self.nodes
     {
       if node.val==val { return std::result::Result::Err(1); }
     }
-    self.nodes.push(std::rc::Rc::new(Node::new(val)));
-    std::result::Result::Ok(val)
+    let nd: std::rc::Rc<Node<T>>=std::rc::Rc::new(Node::new(val));
+    let res: std::result::Result<std::rc::Rc<Node<T>>,usize>=std::result::Result::Ok(std::rc::Rc::clone(&nd));
+
+    self.nodes.push(nd);
+    res
   }
 
   fn connect(&mut self,val_one: T,val_two: T) -> std::result::Result<usize,T>
   {
     let node_one: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_one);
     let node_two: std::option::Option<std::rc::Rc<Node<T>>>=self.find(val_two);
-    
+
     std::result::Result::Ok(0)
   }
 
@@ -143,18 +146,18 @@ mod graph_tests
   {
     // test a valid insertion
     let mut graph=Graph::<usize>::new();
-    let res: std::result::Result<usize,usize>=graph.add_node(2);
+    let res: std::result::Result<std::rc::Rc<Node<usize>>,usize>=graph.add_node(2);
     assert!(res.is_ok());
     match res
     {
-      Ok(x) => assert!(x==2),
+      Ok(x) => assert!(x.val==2),
       _     => (),
     }
     assert!(graph.nodes[0].val==2);
     assert!(graph.nodes.len()==1);
     
     // test an invalid insertion
-    let res: std::result::Result<usize,usize>=graph.add_node(2);
+    let res: std::result::Result<std::rc::Rc<Node<usize>>,usize>=graph.add_node(2);
     assert!(res.is_err());
     match res
     {
@@ -164,11 +167,11 @@ mod graph_tests
     assert!(graph.nodes.len()==1);
 
     // test another valid insertion
-    let res: std::result::Result<usize,usize>=graph.add_node(1729);
+    let res: std::result::Result<std::rc::Rc<Node<usize>>,usize>=graph.add_node(1729);
     assert!(res.is_ok());
     match res
     {
-      Ok(x) => assert!(x==1729),
+      Ok(x) => assert!(x.val==1729),
       _     => (),
     }
     assert!(graph.nodes.len()==2);
