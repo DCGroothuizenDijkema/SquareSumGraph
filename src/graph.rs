@@ -49,6 +49,15 @@ struct Node<T>
 impl<T> Node<T>
   where T: Scalar
 {
+  /// Returns a new Node with a given value and an empty Vec of Edges.
+  /// 
+  /// # Parameters
+  /// * `val` : T
+  ///   The value for the Node to take.
+  /// 
+  /// # Returns
+  /// * `node` : Node<T>
+  ///   A new Node with given value.
   fn new(val: T) -> Self
   {
     Node{val:val,edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
