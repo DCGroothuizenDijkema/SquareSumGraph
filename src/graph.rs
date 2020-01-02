@@ -77,9 +77,11 @@ impl<'a,T> Graph<'a,T>
     std::result::Result::Ok(val)
   }
 
-  fn connect(&mut self,val_one: T,val_two: T)
+  fn connect(&mut self,val_one: T,val_two: T) -> std::result::Result<usize,T>
   {
-
+    if self.find(val_one).is_none() { return std::result::Result::Err(val_one); }
+    if self.find(val_two).is_none() { return std::result::Result::Err(val_two); }
+    std::result::Result::Ok(0)
   }
 
   fn find(&mut self,val: T) -> std::option::Option<&Node<T>>
@@ -192,5 +194,37 @@ mod graph_tests
     // a value that hasn't been added cannot be found
     let res: std::option::Option<&Node<f64>>=graph.find(2.93);
     assert!(res.is_none());
+  }
+
+  #[test]
+  fn test_connect()
+  {
+    // test error
+    let mut graph=Graph::<i32>::new();
+    let res: std::result::Result<usize,i32>=graph.connect(173,-98);
+    assert!(res.is_err());
+    match res
+    {
+      Err(x) => assert!(x==173),
+      _      => (),
+    }
+    assert!(graph.edges.is_empty());
+    graph.add_node(173).unwrap();
+    let res: std::result::Result<usize,i32>=graph.connect(173,-98);
+    assert!(res.is_err());
+    match res
+    {
+      Err(x) => assert!(x==-98),
+      _      => (),
+    }
+    assert!(graph.edges.is_empty());
+    graph.add_node(-98).unwrap();
+    let res: std::result::Result<usize,i32>=graph.connect(173,-98);
+    assert!(res.is_ok());
+    match res
+    {
+      Ok(x) => assert!(x==0),
+      _     => (),
+    }
   }
 }
