@@ -103,6 +103,9 @@ impl<T> Graph<T>
     let edge: Rc<RefCell<Edge<T>>>=Rc::new(RefCell::new(Edge{nodes:vec![Rc::clone(&node_one),Rc::clone(&node_two)]}));
     let res: Result<Rc<RefCell<Edge<T>>>,T>=Result::Ok(Rc::clone(&edge));
 
+    node_one.borrow_mut().edges.push(Rc::clone(&edge));
+    node_two.borrow_mut().edges.push(Rc::clone(&edge));
+
     self.edges.push(edge);
     res
   }
@@ -223,20 +226,23 @@ mod graph_tests
   #[test]
   fn test_connect()
   {
-    // test error
+    // test error when no nodes are added
     let mut graph=Graph::<i32>::new();
     let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
+    // the Err Result should be the first value
     match res
     {
       Err(x) => assert!(x==173),
       _      => (),
     }
     assert!(graph.edges.is_empty());
-
+    
+    // test error when one node has been added
     let nd_one: Rc<RefCell<Node<i32>>>=graph.add_node(173).unwrap();
     let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
+    // the Err Result should be the second value
     match res
     {
       Err(x) => assert!(x==-98),
@@ -244,25 +250,36 @@ mod graph_tests
     }
     assert!(graph.edges.is_empty());
 
+    // test no error when both nodes have been added
     let nd_two: Rc<RefCell<Node<i32>>>=graph.add_node(-98).unwrap();
     let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
-    assert!(graph.edges.len()==1);
-    assert!(res.is_ok());
-    let edge: Rc<RefCell<Edge<i32>>>=res.unwrap();
-    assert!(&*nd_one.borrow() as *const Node<i32> == &*edge.borrow().nodes[0].borrow() as *const Node<i32>);
-    assert!(&*nd_two.borrow() as *const Node<i32> == &*edge.borrow().nodes[1].borrow() as *const Node<i32>);
-
+    assert!(graph.edges.len()==1); // one edge should have been added
+    assert!(res.is_ok()); // Result should be Ok
+    let edge_one: Rc<RefCell<Edge<i32>>>=res.unwrap();
+    // Nodes should have been added to Edge in order
+    assert!(&*nd_one.borrow() as *const Node<i32> == &*edge_one.borrow().nodes[0].borrow() as *const Node<i32>);
+    assert!(&*nd_two.borrow() as *const Node<i32> == &*edge_one.borrow().nodes[1].borrow() as *const Node<i32>);
+    
+    // test no error when both nodes have been added
     let nd_three: Rc<RefCell<Node<i32>>>=graph.add_node(1).unwrap();
     let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,1);
-    assert!(graph.edges.len()==2);
-    assert!(res.is_ok());
-    let edge: Rc<RefCell<Edge<i32>>>=res.unwrap();
-    assert!(&*nd_one.borrow() as *const Node<i32> == &*edge.borrow().nodes[0].borrow() as *const Node<i32>);
-    assert!(&*nd_three.borrow() as *const Node<i32> == &*edge.borrow().nodes[1].borrow() as *const Node<i32>);
+    assert!(graph.edges.len()==2); // one edge should have been added
+    assert!(res.is_ok()); // Result should be Ok
+    let edge_two: Rc<RefCell<Edge<i32>>>=res.unwrap();
+    // Nodes should have been added to Edge in order
+    assert!(&*nd_one.borrow() as *const Node<i32> == &*edge_two.borrow().nodes[0].borrow() as *const Node<i32>);
+    assert!(&*nd_three.borrow() as *const Node<i32> == &*edge_two.borrow().nodes[1].borrow() as *const Node<i32>);
 
-    assert!(&*graph.nodes[0].borrow() as *const Node<i32> == &*graph.edges[0].borrow().nodes[0].borrow() as *const Node<i32>);
-    assert!(&*graph.nodes[0].borrow() as *const Node<i32> == &*graph.edges[1].borrow().nodes[0].borrow() as *const Node<i32>);
-    assert!(&*graph.nodes[1].borrow() as *const Node<i32> == &*graph.edges[0].borrow().nodes[1].borrow() as *const Node<i32>);
+    // check matches
+    assert!(&*graph.nodes[0].borrow() as *const Node<i32> == &*graph.edges[0].borrow().nodes[0].borrow() as *const Node<i32>); 
+    assert!(&*graph.nodes[0].borrow() as *const Node<i32> == &*graph.edges[1].borrow().nodes[0].borrow() as *const Node<i32>); 
+    assert!(&*graph.nodes[1].borrow() as *const Node<i32> == &*graph.edges[0].borrow().nodes[1].borrow() as *const Node<i32>); 
     assert!(&*graph.nodes[2].borrow() as *const Node<i32> == &*graph.edges[1].borrow().nodes[1].borrow() as *const Node<i32>);
+
+    // check matches
+    assert!(&*nd_one.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_one.borrow()  as *const Edge<i32>);
+    assert!(&*nd_one.borrow().edges[1].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
+    assert!(&*nd_two.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_one.borrow()  as *const Edge<i32>);
+    assert!(&*nd_three.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
   }
 }
