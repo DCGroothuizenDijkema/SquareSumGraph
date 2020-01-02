@@ -11,14 +11,18 @@ impl<T> Scalar for T where T:
 {
 }
 
+
 struct Node<'a,T>
   where T: Scalar
 {
+  val: T,
+  edges: std::vec::Vec<&'a Edge<'a,T>>
 }
 
 struct Edge<'a,T>
   where T: Scalar
-{
+  {
+    nodes: std::vec::Vec<&'a Node<'a,T>>
 }
 
 pub struct Graph<'a,T>
