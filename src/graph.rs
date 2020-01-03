@@ -183,7 +183,6 @@ impl<T> Graph<T>
       let edge_node_one_val: T=edge.borrow().nodes[1].borrow().val;
 
       if edge_node_zero_val==node_one_val && edge_node_one_val==val_two { return Result::Err(edge_node_zero_val); }
-
       if edge_node_one_val==node_one_val && edge_node_zero_val==val_two { return Result::Err(edge_node_zero_val); }
     }
 
@@ -213,20 +212,23 @@ impl<T> Graph<T>
     // now just do a breath first search
     let mut visited: Vec<bool>=vec![false;self.order()];
     let mut q: VecDeque<Rc<RefCell<Node<T>>>>=VecDeque::<Rc<RefCell<Node<T>>>>::new();
-
+    // add the first Noe and mark as visited
     q.push_back(Rc::clone(&self.nodes[0]));
     visited[0]=true;
     while !q.is_empty()
     {
       let nd: Rc<RefCell<Node<T>>>=q.pop_front().unwrap();  
       let nd_val: T=nd.borrow().val();
+      // find all Nodes connected to the current Node
       for edge in &nd.borrow().edges
       {
         for connected_nd in &edge.borrow().nodes
         {
           let connected_val: T=connected_nd.borrow().val();
+          // we may have found the current Node so continue
           if connected_val==nd_val { continue; }
           let idx: usize=self.get_idx(connected_val).unwrap();
+          // if we haven't visited, mark as so, and add to search queue
           if !visited[idx]
           {
             visited[idx]=true;
@@ -235,7 +237,7 @@ impl<T> Graph<T>
         }
       }
     }
-
+    // if all of visited is true, the Graph is connected
     visited.iter().all(|&x| x==true)
   }
 
@@ -263,23 +265,19 @@ impl<T> Graph<T>
     Option::None
   }
 
-  /// Find a node in the Graph
+  /// Get the index of a node in a Graph
   /// 
   /// # Parameters
   /// * `val` : T
   ///   The value of the Node to find.
   /// 
   /// # Returns
-  /// * `res` : Option<Rc<RefCell<Node<T>>>>
-  ///   `res` is Option::Some if the Node was found. res::Some contains an Rc<RefCell<>> to the Node.
+  /// * `res` : Option<usize>
+  ///   `res` is Option::Some if the Node was found. res::Some contains the index of the Node.
   ///   `res` is Option::None if the Node could not be found.
   fn get_idx(&self,val: T) -> Option<usize>
   {
-    for (itr,nd) in self.nodes.iter().enumerate()
-    {
-      if nd.borrow().val==val { return Option::Some(itr); }
-    }
-    Option::None
+    self.nodes.iter().position(|x| x.borrow().val()==val)
   }
 }
 
