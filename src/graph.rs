@@ -71,6 +71,21 @@ impl<T> Node<T>
   {
     self.val
   }
+
+  pub fn degree(&self) -> usize
+  {
+    return self.edges.len()
+  }
+
+  pub fn is_isolated(&self) -> bool
+  {
+    return self.edges.len()==0
+  }
+
+  pub fn is_leaf(&self) -> bool
+  {
+    return self.edges.len()==1
+  }
 }
 
 pub struct Edge<T>
@@ -244,6 +259,14 @@ impl<T> Graph<T>
   pub fn hamiltonian_path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
   {
     if !self.is_connected() { return Option::None; }
+    let mut degree_one_nodes_cnt: usize=0;
+
+    // the Graph cannot have more than two Nodes with degree 1
+    for nd in &self.nodes
+    {
+      if nd.borrow().is_leaf() { degree_one_nodes_cnt += 1; }
+      if degree_one_nodes_cnt>2 { return Option::None; }
+    }
     Option::None
   }
 
