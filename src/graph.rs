@@ -148,6 +148,12 @@ impl<T> Graph<T>
     self.edges.len()
   }
 
+  /// Returns the density of the Graph
+  pub fn density(&self) -> f64
+  {
+    (2*self.size()) as f64/(self.order()*(self.order()-1)) as f64
+  }
+
   /// Create a new Node with a given value and add it to the Graph.
   /// Cannot add a new Node with the same value as a Node already in the Graph.
   /// 
@@ -272,7 +278,6 @@ impl<T> Graph<T>
       if nd.borrow().is_leaf() { degree_one_nodes_cnt += 1; }
       if degree_one_nodes_cnt>2 { return Option::None; }
     }
-
 
     Option::None
   }
