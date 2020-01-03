@@ -198,6 +198,7 @@ impl<T> Graph<T>
     res
   }
 
+  /// Returns true if the Graph is connected, false otherwise
   pub fn is_connected(&self) -> bool
   {
     // trivial graph cases
@@ -209,7 +210,33 @@ impl<T> Graph<T>
     if self.order()==2 && self.size()==1 { return true; }
     if self.order()==3 && self.size()>1 { return true; }
 
-    false
+    // now just do a breath first search
+    let mut visited: Vec<bool>=vec![false;self.order()];
+    let mut q: VecDeque<Rc<RefCell<Node<T>>>>=VecDeque::<Rc<RefCell<Node<T>>>>::new();
+
+    q.push_back(Rc::clone(&self.nodes[0]));
+    visited[0]=true;
+    while !q.is_empty()
+    {
+      let nd: Rc<RefCell<Node<T>>>=q.pop_front().unwrap();  
+      let nd_val: T=nd.borrow().val();
+      for edge in &nd.borrow().edges
+      {
+        for connected_nd in &edge.borrow().nodes
+        {
+          let connected_val: T=connected_nd.borrow().val();
+          if connected_val==nd_val { continue; }
+          let idx: usize=self.get_idx(connected_val).unwrap();
+          if !visited[idx]
+          {
+            visited[idx]=true;
+            q.push_back(Rc::clone(&connected_nd));
+          }
+        }
+      }
+    }
+
+    visited.iter().all(|&x| x==true)
   }
 
   pub fn path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
@@ -229,9 +256,28 @@ impl<T> Graph<T>
   ///   `res` is Option::None if the Node could not be found.
   fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
   {
-    for node in &self.nodes
+    for nd in &self.nodes
     {
-      if node.borrow().val==val { return Option::Some(Rc::clone(&node)); }
+      if nd.borrow().val==val { return Option::Some(Rc::clone(&nd)); }
+    }
+    Option::None
+  }
+
+  /// Find a node in the Graph
+  /// 
+  /// # Parameters
+  /// * `val` : T
+  ///   The value of the Node to find.
+  /// 
+  /// # Returns
+  /// * `res` : Option<Rc<RefCell<Node<T>>>>
+  ///   `res` is Option::Some if the Node was found. res::Some contains an Rc<RefCell<>> to the Node.
+  ///   `res` is Option::None if the Node could not be found.
+  fn get_idx(&self,val: T) -> Option<usize>
+  {
+    for (itr,nd) in self.nodes.iter().enumerate()
+    {
+      if nd.borrow().val==val { return Option::Some(itr); }
     }
     Option::None
   }
@@ -568,9 +614,20 @@ mod graph_tests
     assert!(!gr.is_connected());
     gr.connect(10858,8191);
     assert!(gr.is_connected());
-    gr.add_node(785570);
+    gr.add_node(78557);
     assert!(!gr.is_connected());
-    gr.connect(785570,10858);
+    gr.connect(78557,10858);
     assert!(gr.is_connected());
+    gr.add_node(6);
+    gr.connect(78557,8191);
+    assert!(!gr.is_connected());
+    gr.connect(10858,6);
+    assert!(gr.is_connected());
+    gr.add_node(1729);
+    assert!(!gr.is_connected());
+    gr.add_node(30357);
+    assert!(!gr.is_connected());
+    gr.connect(1729,30357);
+    assert!(!gr.is_connected());
   }
 }
