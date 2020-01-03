@@ -96,6 +96,16 @@ impl<T> Graph<T>
     Graph{nodes:Vec::<Rc<RefCell<Node<T>>>>::new(),edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
   }
 
+  pub fn is_empty(&self) -> bool
+  {
+    self.nodes.is_empty()
+  }
+
+  pub fn is_trivial(&self) -> bool
+  {
+    self.nodes.len()==1
+  }
+
   /// Create a new Node with a given value and add it to the Graph.
   /// Cannot add a new Node with the same value as a Node already in the Graph.
   /// 
@@ -406,5 +416,27 @@ mod graph_tests
     }
     // (compile time?) test that the iter doesn't move the Graph
     gr.add_node('y').unwrap();
+  }
+
+  #[test]
+  fn test_is_empty()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    assert!(gr.is_empty());
+    gr.add_node(3.14).unwrap();
+    assert!(!gr.is_empty());
+  }
+
+  #[test]
+  fn test_is_trivial()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    assert!(!gr.is_trivial());
+
+    gr.add_node(3.14).unwrap();
+    assert!(gr.is_trivial());
+
+    gr.add_node(1.618).unwrap();
+    assert!(!gr.is_trivial());
   }
 }
