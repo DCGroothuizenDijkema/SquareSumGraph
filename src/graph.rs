@@ -241,8 +241,9 @@ impl<T> Graph<T>
     visited.iter().all(|&x| x==true)
   }
 
-  pub fn path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
+  pub fn hamiltonian_path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
   {
+    if !self.is_connected() { return Option::None; }
     Option::None
   }
 
@@ -434,7 +435,7 @@ mod graph_tests
       assert!(res.is_some());
       assert!(res.unwrap()==itr);
     }
-    // a value that hasn't been added have no index
+    // a value that hasn't been added has no index
     let res: Option<usize>=graph.get_idx(2.93);
     assert!(res.is_none());
   }
@@ -649,5 +650,22 @@ mod graph_tests
     assert!(!gr.is_connected());
     gr.connect(1729,30357);
     assert!(!gr.is_connected());
+  }
+
+  #[test]
+  fn test_hamiltonian_path()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    gr.add_node(3.14);
+    gr.add_node(1.618);
+    gr.add_node(2.718);
+    gr.add_node(-0.083);
+    assert!(gr.hamiltonian_path().is_none());
+    gr.connect(3.14,1.618);
+    gr.connect(-0.083,1.618);
+    gr.connect(2.718,1.618);
+    assert!(gr.hamiltonian_path().is_none());
+    gr.connect(2.718,-0.083);
+    assert!(gr.hamiltonian_path().is_some());
   }
 }
