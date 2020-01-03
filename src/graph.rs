@@ -427,15 +427,15 @@ mod graph_tests
     {
       graph.add_node(val).unwrap();
     }
-    // values that have been added can be found
+    // values that have been added have the correct index
     for (itr,&val) in vals.iter().enumerate()
     {
       let res: Option<usize>=graph.get_idx(val);
       assert!(res.is_some());
       assert!(res.unwrap()==itr);
     }
-    // a value that hasn't been added cannot be found
-    let res: Option<Rc<RefCell<Node<f64>>>>=graph.find(2.93);
+    // a value that hasn't been added have no index
+    let res: Option<usize>=graph.get_idx(2.93);
     assert!(res.is_none());
   }
 
