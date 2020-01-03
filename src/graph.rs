@@ -216,10 +216,9 @@ impl<T> Graph<T>
     Option::None
   }
 
-  // pub fn path() -> Vec<Rc<RefCell<Node<T>>>>
-  pub fn path() -> ()
+  pub fn path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
   {
-    // Vec<Rc<RefCell<Node<T>>>>::new()
+    Option::None
   }
 }
 
