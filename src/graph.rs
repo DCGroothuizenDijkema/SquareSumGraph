@@ -106,6 +106,16 @@ impl<T> Graph<T>
     self.nodes.len()==1
   }
 
+  pub fn order(&self) -> usize
+  {
+    self.nodes.len()
+  }
+
+  pub fn size(&self) -> usize
+  {
+    self.edges.len()
+  }
+
   /// Create a new Node with a given value and add it to the Graph.
   /// Cannot add a new Node with the same value as a Node already in the Graph.
   /// 
@@ -438,5 +448,45 @@ mod graph_tests
 
     gr.add_node(1.618).unwrap();
     assert!(!gr.is_trivial());
+  }
+
+  #[test]
+  fn test_order()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    assert!(gr.order()==0);
+
+    gr.add_node(3.14).unwrap();
+    assert!(gr.order()==1);
+
+    gr.add_node(1.618).unwrap();
+    assert!(gr.order()==2);
+    
+    gr.connect(3.14,1.618).unwrap();
+    assert!(gr.order()==2);
+  }
+
+  #[test]
+  fn test_size()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    assert!(gr.size()==0);
+    gr.add_node(3.14).unwrap();
+    assert!(gr.size()==0);
+    gr.add_node(1.618).unwrap();
+    assert!(gr.size()==0);
+    gr.add_node(2.718).unwrap();
+    assert!(gr.size()==0);
+    gr.add_node(-0.083).unwrap();
+    assert!(gr.size()==0);
+    
+    gr.connect(3.14,2.718).unwrap();
+    assert!(gr.size()==1);
+
+    gr.connect(3.14,1.618).unwrap();
+    assert!(gr.size()==2);
+
+    gr.connect(1.618,-0.083).unwrap();
+    assert!(gr.size()==3);
   }
 }
