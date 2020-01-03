@@ -141,6 +141,18 @@ impl<T> Graph<T>
     // retrieve the Nodes
     let node_one: Rc<RefCell<Node<T>>>=node_one.unwrap();
     let node_two: Rc<RefCell<Node<T>>>=node_two.unwrap();
+
+    // check if the Nodes are already connected
+    for edge in &node_one.borrow().edges
+    {
+      if edge.borrow().nodes[0].borrow().val==node_one.borrow().val()
+        && edge.borrow().nodes[1].borrow().val==val_two
+      { return Result::Err(val_one); }
+      if edge.borrow().nodes[1].borrow().val==node_one.borrow().val()
+        && edge.borrow().nodes[0].borrow().val==val_two
+      { return Result::Err(val_one); }
+    }
+
     // construct the Edge from the two Nodes and the result from the Edge
     let edge: Rc<RefCell<Edge<T>>>=Rc::new(RefCell::new(Edge{nodes:vec![Rc::clone(&node_one),Rc::clone(&node_two)]}));
     let res: Result<Rc<RefCell<Edge<T>>>,T>=Result::Ok(Rc::clone(&edge));
@@ -351,6 +363,27 @@ mod graph_tests
     assert!(&*nd_one.borrow().edges[1].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
     assert!(&*nd_two.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_one.borrow()  as *const Edge<i32>);
     assert!(&*nd_three.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
+
+    // test error when trying to connect already connected Nodes
+    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
+    assert!(res.is_err());
+    // the Err Result should be the first value
+    match res
+    {
+      Err(x) => assert!(x==173),
+      _      => (),
+    }
+    assert!(graph.edges.len()==2);
+    // and the other way around
+    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(-98,173);
+    assert!(res.is_err());
+    // the Err Result should be the first value
+    match res
+    {
+      Err(x) => assert!(x==-98),
+      _      => (),
+    }
+    assert!(graph.edges.len()==2);
   }
 
   #[test]
