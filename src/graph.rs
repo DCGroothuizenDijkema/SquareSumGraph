@@ -145,12 +145,13 @@ impl<T> Graph<T>
     // check if the Nodes are already connected
     for edge in &node_one.borrow().edges
     {
-      if edge.borrow().nodes[0].borrow().val==node_one.borrow().val()
-        && edge.borrow().nodes[1].borrow().val==val_two
-      { return Result::Err(val_one); }
-      if edge.borrow().nodes[1].borrow().val==node_one.borrow().val()
-        && edge.borrow().nodes[0].borrow().val==val_two
-      { return Result::Err(val_one); }
+      let node_one_val: T=node_one.borrow().val();
+      let edge_node_zero_val: T=edge.borrow().nodes[0].borrow().val;
+      let edge_node_one_val: T=edge.borrow().nodes[1].borrow().val;
+
+      if edge_node_zero_val==node_one_val && edge_node_one_val==val_two { return Result::Err(edge_node_zero_val); }
+
+      if edge_node_one_val==node_one_val && edge_node_zero_val==val_two { return Result::Err(edge_node_zero_val); }
     }
 
     // construct the Edge from the two Nodes and the result from the Edge
@@ -380,7 +381,7 @@ mod graph_tests
     // the Err Result should be the first value
     match res
     {
-      Err(x) => assert!(x==-98),
+      Err(x) => assert!(x==173),
       _      => (),
     }
     assert!(graph.edges.len()==2);
