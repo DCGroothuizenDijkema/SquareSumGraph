@@ -1,5 +1,7 @@
 
 #![allow(non_snake_case)]
+#![allow(unused_must_use)]
+#![allow(unused_variables)]
 
 use std::vec::Vec;
 
@@ -18,6 +20,20 @@ fn square_sum_graph(n: u32) -> Graph<u32>
   {
     gr.add_node(itr).unwrap();
   }
+
+  for itr in 0..gr.order()
+  {
+    for pow in &pows
+    {
+      let val: u32=(itr as u32)+1;
+      if pow<&val { continue; }
+
+      let diff: u32=pow-val;
+      if diff==0 { continue; }
+
+      if diff<=n&&val!=diff { gr.connect(val as u32,diff); }
+    }
+  }
   
   gr
 }
@@ -26,4 +42,5 @@ fn square_sum_graph(n: u32) -> Graph<u32>
 fn main()
 {
   let gr: Graph<u32>=square_sum_graph(15);
+  println!("{}",gr);
 }
