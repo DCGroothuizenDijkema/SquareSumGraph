@@ -170,17 +170,23 @@ impl<T> Graph<T>
     }
     Option::None
   }
+
+  // pub fn path() -> Vec<Rc<RefCell<Node<T>>>>
+  pub fn path() -> ()
+  {
+    // Vec<Rc<RefCell<Node<T>>>>::new()
+  }
 }
 
-impl<T> std::iter::IntoIterator for Graph<T>
+impl<'a,T> std::iter::IntoIterator for &'a Graph<T>
   where T: Scalar
 {
-  type Item=Rc<RefCell<Node<T>>>;
-  type IntoIter=std::vec::IntoIter<Self::Item>;
+  type Item = &'a Rc<RefCell<Node<T>>>;
+  type IntoIter = std::slice::Iter<'a,Rc<RefCell<Node<T>>>>;
 
-  fn into_iter(self) -> Self::IntoIter
+  fn into_iter(self) -> std::slice::Iter<'a,Rc<RefCell<Node<T>>>>
   {
-    self.nodes.into_iter()
+    self.nodes.iter()
   }
 }
 
@@ -364,5 +370,7 @@ mod graph_tests
       assert!(nd.borrow().val==vals[itr]);
       itr+=1;
     }
+    // (compile time?) test that the iter doesn't move the Graph
+    gr.add_node('y').unwrap();
   }
 }
