@@ -26,12 +26,14 @@ use std::result::Result;
 pub trait Scalar:
   std::cmp::PartialEq
   + std::marker::Copy
-{
-}
-
-impl<T> Scalar for T where T:
+  + std::fmt::Display
+  {
+  }
+  
+  impl<T> Scalar for T where T:
   std::cmp::PartialEq
   + std::marker::Copy
+  + std::fmt::Display
 {
 }
 
