@@ -17,6 +17,7 @@ use std::rc::Rc;
 use std::vec::Vec;
 use std::option::Option;
 use std::result::Result;
+use std::collections::VecDeque;
 
 
 //
@@ -197,6 +198,21 @@ impl<T> Graph<T>
     res
   }
 
+  pub fn connected(&self) -> bool
+  {
+    // trivial graph cases
+    if self.is_empty() { return false; }
+    if self.is_trivial() { return false; }
+    if self.is_edgeless() { return false; }
+
+    true
+  }
+
+  pub fn path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
+  {
+    Option::None
+  }
+
   /// Find a node in the Graph
   /// 
   /// # Parameters
@@ -213,11 +229,6 @@ impl<T> Graph<T>
     {
       if node.borrow().val==val { return Option::Some(Rc::clone(&node)); }
     }
-    Option::None
-  }
-
-  pub fn path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
-  {
     Option::None
   }
 }
@@ -540,5 +551,16 @@ mod graph_tests
 
     gr.connect(1.618,-0.083).unwrap();
     assert!(gr.size()==3);
+  }
+
+  #[test]
+  fn test_connected()
+  {
+    let mut gr: Graph<i32>=Graph::<i32>::new();
+    assert!(!gr.connected());
+    gr.add_node(10858);
+    assert!(!gr.connected());
+    gr.add_node(8191);
+    assert!(!gr.connected());
   }
 }
