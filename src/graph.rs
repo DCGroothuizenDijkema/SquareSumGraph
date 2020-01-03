@@ -205,7 +205,11 @@ impl<T> Graph<T>
     if self.is_trivial() { return false; }
     if self.is_edgeless() { return false; }
 
-    true
+    // very simple graphs
+    if self.order()==2 && self.size()==1 { return true; }
+    if self.order()==3 && self.size()>1 { return true; }
+
+    false
   }
 
   pub fn path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
@@ -562,5 +566,11 @@ mod graph_tests
     assert!(!gr.is_connected());
     gr.add_node(8191);
     assert!(!gr.is_connected());
+    gr.connect(10858,8191);
+    assert!(gr.is_connected());
+    gr.add_node(785570);
+    assert!(!gr.is_connected());
+    gr.connect(785570,10858);
+    assert!(gr.is_connected());
   }
 }
