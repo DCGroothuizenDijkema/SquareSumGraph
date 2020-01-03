@@ -96,26 +96,31 @@ impl<T> Graph<T>
     Graph{nodes:Vec::<Rc<RefCell<Node<T>>>>::new(),edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
   }
 
+  /// Returns true if the Graph has no Nodes, false otherwise
   pub fn is_empty(&self) -> bool
   {
     self.nodes.is_empty()
   }
-
+  
+  /// Returns true if the Graph has only one Node, false otherwise
   pub fn is_trivial(&self) -> bool
   {
     self.nodes.len()==1
   }
-
+  
+  /// Returns true if the Graph has only no Edges, false otherwise
   pub fn is_edgeless(&self) -> bool
   {
     self.edges.is_empty()
   }
 
+  /// Returns the number of Nodes in the Graph
   pub fn order(&self) -> usize
   {
     self.nodes.len()
   }
-
+  
+  /// Returns the number of Edges in the Graph
   pub fn size(&self) -> usize
   {
     self.edges.len()
