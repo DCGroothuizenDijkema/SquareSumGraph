@@ -161,7 +161,7 @@ impl<T> Graph<T>
   /// 
   /// # Returns
   /// * `res` : Result<Rc<RefCell<Edge<T>>>,T>
-  ///   `res` is Result::Ok if the Nodes were connected. res::OK contains an Rc<RefCell<>> to the Edge connecting the Nodes.
+  ///   `res` is Result::Ok if the Nodes were is_connected. res::OK contains an Rc<RefCell<>> to the Edge connecting the Nodes.
   ///   `res` is Result::Err if either of the Nodes do not exist. res::Err contains the first value which did not exist.
   pub fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<RefCell<Edge<T>>>,T>
   {
@@ -175,7 +175,7 @@ impl<T> Graph<T>
     let node_one: Rc<RefCell<Node<T>>>=node_one.unwrap();
     let node_two: Rc<RefCell<Node<T>>>=node_two.unwrap();
 
-    // check if the Nodes are already connected
+    // check if the Nodes are already is_connected
     for edge in &node_one.borrow().edges
     {
       let node_one_val: T=node_one.borrow().val();
@@ -198,7 +198,7 @@ impl<T> Graph<T>
     res
   }
 
-  pub fn connected(&self) -> bool
+  pub fn is_connected(&self) -> bool
   {
     // trivial graph cases
     if self.is_empty() { return false; }
@@ -428,7 +428,7 @@ mod graph_tests
     assert!(&*nd_two.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_one.borrow()  as *const Edge<i32>);
     assert!(&*nd_three.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
 
-    // test error when trying to connect already connected Nodes
+    // test error when trying to connect already is_connected Nodes
     let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
@@ -554,13 +554,13 @@ mod graph_tests
   }
 
   #[test]
-  fn test_connected()
+  fn test_is_connected()
   {
     let mut gr: Graph<i32>=Graph::<i32>::new();
-    assert!(!gr.connected());
+    assert!(!gr.is_connected());
     gr.add_node(10858);
-    assert!(!gr.connected());
+    assert!(!gr.is_connected());
     gr.add_node(8191);
-    assert!(!gr.connected());
+    assert!(!gr.is_connected());
   }
 }
