@@ -207,7 +207,7 @@ impl<T> Graph<T>
   /// * `res` : Option<Rc<RefCell<Node<T>>>>
   ///   `res` is Option::Some if the Node was found. res::Some contains an Rc<RefCell<>> to the Node.
   ///   `res` is Option::None if the Node could not be found.
-  pub fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
+  fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
   {
     for node in &self.nodes
     {
