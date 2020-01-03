@@ -106,6 +106,11 @@ impl<T> Graph<T>
     self.nodes.len()==1
   }
 
+  pub fn is_edgeless(&self) -> bool
+  {
+    self.edges.is_empty()
+  }
+
   pub fn order(&self) -> usize
   {
     self.nodes.len()
@@ -448,6 +453,26 @@ mod graph_tests
 
     gr.add_node(1.618).unwrap();
     assert!(!gr.is_trivial());
+  }
+
+  #[test]
+  fn test_is_edgeless()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    assert!(gr.is_edgeless());
+    gr.add_node(3.14).unwrap();
+    assert!(gr.is_edgeless());
+    gr.add_node(1.618).unwrap();
+    assert!(gr.is_edgeless());
+    gr.add_node(2.718).unwrap();
+    assert!(gr.is_edgeless());
+    gr.add_node(-0.083).unwrap();
+    assert!(gr.is_edgeless());
+    
+    gr.connect(3.14,2.718).unwrap();
+    assert!(!gr.is_edgeless());
+    gr.connect(3.14,1.618).unwrap();
+    assert!(!gr.is_edgeless());
   }
 
   #[test]
