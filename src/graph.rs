@@ -235,6 +235,27 @@ impl<'a,T> std::iter::IntoIterator for &'a Graph<T>
   }
 }
 
+impl<T> std::fmt::Display for Graph<T>
+  where T: Scalar
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "Nodes:\n  ");
+    for (itr,nd) in self.nodes.iter().enumerate()
+    {
+      write!(f, "{}",nd.borrow().val());
+      if itr!=self.order()-1 { write!(f, ","); }
+    }
+    write!(f, "\nEdges:\n  ");
+    for (itr,ed) in self.edges.iter().enumerate()
+    {
+      write!(f, "{} -> {}",ed.borrow().nodes[0].borrow().val(),ed.borrow().nodes[1].borrow().val());
+      if itr!=self.size()-1 { write!(f, ",\n  "); }
+    }
+    write!(f,"")
+  }
+}
+
 
 //
 // Tests
