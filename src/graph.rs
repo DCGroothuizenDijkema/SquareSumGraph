@@ -416,6 +416,28 @@ mod graph_tests
     let res: Option<Rc<RefCell<Node<f64>>>>=graph.find(2.93);
     assert!(res.is_none());
   }
+  #[test]
+  fn test_get_idx()
+  {
+    let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
+    let mut graph=Graph::<f64>::new();
+    
+    // add the values
+    for &val in vals.iter()
+    {
+      graph.add_node(val).unwrap();
+    }
+    // values that have been added can be found
+    for (itr,&val) in vals.iter().enumerate()
+    {
+      let res: Option<usize>=graph.get_idx(val);
+      assert!(res.is_some());
+      assert!(res.unwrap()==itr);
+    }
+    // a value that hasn't been added cannot be found
+    let res: Option<Rc<RefCell<Node<f64>>>>=graph.find(2.93);
+    assert!(res.is_none());
+  }
 
   #[test]
   fn test_connect()
