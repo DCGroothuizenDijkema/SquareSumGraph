@@ -431,13 +431,22 @@ mod node_tests
     let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
     let nd_four: Rc<RefCell<Node<u32>>>=gr.add_node(8128).unwrap();
     
+    // check before connections that each Node has no adjacent Nodes
     assert!(nd_one.borrow().adjacent_nodes().is_none());
+    assert!(nd_two.borrow().adjacent_nodes().is_none());
+    assert!(nd_three.borrow().adjacent_nodes().is_none());
+    assert!(nd_four.borrow().adjacent_nodes().is_none());
 
+    // connecting a Node returns Some
     gr.connect(6,28);
     assert!(nd_one.borrow().adjacent_nodes().is_some());
+    // connecting another Node returns Some
     gr.connect(6,496);
     assert!(nd_one.borrow().adjacent_nodes().is_some());
     
+    // the connected Nodes are in the Vec
+    // the not connected Node is not
+    // the Node itself is not either
     let adj: Vec<Rc<RefCell<Node<u32>>>>=nd_one.borrow().adjacent_nodes().unwrap();
     assert!(adj.contains(&nd_two));
     assert!(adj.contains(&nd_three));
