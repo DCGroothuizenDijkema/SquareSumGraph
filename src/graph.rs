@@ -274,7 +274,7 @@ impl<T> Graph<T>
       for connected_nd in &nd.borrow().adjacent_nodes().unwrap()
       {
         // index of connected Node
-        let idx: usize=self.get_idx(connected_nd.borrow().val()).unwrap();
+        let idx: usize=self.idx(connected_nd.borrow().val()).unwrap();
         // if we haven't visited, mark as so, and add to search queue
         if !visited[idx]
         {
@@ -332,7 +332,7 @@ impl<T> Graph<T>
   /// * `res` : Option<usize>
   ///   `res` is Option::Some if the Node was found. res::Some contains the index of the Node.
   ///   `res` is Option::None if the Node could not be found.
-  fn get_idx(&self,val: T) -> Option<usize>
+  fn idx(&self,val: T) -> Option<usize>
   {
     self.nodes.iter().position(|x| x.borrow().val()==val)
   }
@@ -716,7 +716,7 @@ mod graph_tests
     assert!(res.is_none());
   }
   #[test]
-  fn test_get_idx()
+  fn test_idx()
   {
     let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
     let mut gr=Graph::<f64>::new();
@@ -729,12 +729,12 @@ mod graph_tests
     // values that have been added have the correct index
     for (itr,&val) in vals.iter().enumerate()
     {
-      let res: Option<usize>=gr.get_idx(val);
+      let res: Option<usize>=gr.idx(val);
       assert!(res.is_some());
       assert!(res.unwrap()==itr);
     }
     // a value that hasn't been added has no index
-    let res: Option<usize>=gr.get_idx(2.93);
+    let res: Option<usize>=gr.idx(2.93);
     assert!(res.is_none());
   }
 
