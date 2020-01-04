@@ -490,6 +490,30 @@ mod node_tests
       assert!(nd_five.borrow().degree()==0);
     }
   }
+  
+  #[test]
+  fn test_is_isolated()
+  {
+    let mut gr: Graph<u32>=Graph::<u32>::new();
+    
+    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
+    assert!(nd_one.borrow().is_isolated());
+    // adding Nodes keeps is isoalted
+    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
+    assert!(nd_one.borrow().is_isolated());
+    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
+    assert!(nd_one.borrow().is_isolated());
+    
+    // connecting the other Nodes keeps it isolated
+    gr.connect(496,28);
+    assert!(nd_one.borrow().is_isolated());
+    
+    // connecting the Node removes isolation
+    gr.connect(6,28);
+    assert!(!nd_one.borrow().is_isolated());
+    gr.connect(6,496);
+    assert!(!nd_one.borrow().is_isolated());
+  }
 }
 
 #[cfg(test)]
