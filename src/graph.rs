@@ -453,6 +453,43 @@ mod node_tests
     assert!(!adj.contains(&nd_four));
     assert!(!adj.contains(&nd_one));
   }
+
+  #[test]
+  fn test_degree()
+  {
+    let mut gr: Graph<u32>=Graph::<u32>::new();
+    
+    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
+    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
+    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
+    let nd_four: Rc<RefCell<Node<u32>>>=gr.add_node(8128).unwrap();
+    let nd_five: Rc<RefCell<Node<u32>>>=gr.add_node(33550336).unwrap();
+
+    let val: [u32;3]=[28,496,8128];
+
+    // check before connections that each Node has degree 0
+    assert!(nd_one.borrow().degree()==0);
+    assert!(nd_two.borrow().degree()==0);
+    assert!(nd_three.borrow().degree()==0);
+    assert!(nd_four.borrow().degree()==0);
+    assert!(nd_five.borrow().degree()==0);
+
+    let nd_two_degrs: [u32;3]=[1,1,1];
+    let nd_three_degrs: [u32;3]=[0,1,1];
+    let nd_four_degrs: [u32;3]=[0,0,1];
+
+    // connect Nodes two through four
+    for itr in 0..3
+    {
+      gr.connect(6,val[itr]);
+      // connecting a Node increments their degree, leaves the others
+      assert!(nd_one.borrow().degree()==itr+1);
+      assert!(nd_two.borrow().degree()==nd_two_degrs[itr] as usize);
+      assert!(nd_three.borrow().degree()==nd_three_degrs[itr] as usize);
+      assert!(nd_four.borrow().degree()==nd_four_degrs[itr] as usize);
+      assert!(nd_five.borrow().degree()==0);
+    }
+  }
 }
 
 #[cfg(test)]
