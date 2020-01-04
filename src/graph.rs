@@ -28,8 +28,8 @@ pub trait Scalar:
   std::cmp::PartialEq
   + std::marker::Copy
   + std::fmt::Display
-  {
-  }
+{
+}
   
   impl<T> Scalar for T where T:
   std::cmp::PartialEq
@@ -78,7 +78,18 @@ impl<T> Node<T>
   {
     if !self.is_isolated()
     {
-
+      let mut adj_nds: Vec<Rc<RefCell<Node<T>>>>=Vec::<Rc<RefCell<Node<T>>>>::new();
+      for edge in &self.edges
+      {
+        for connected_nd in &edge.borrow().nodes
+        {
+          let connected_val: T=connected_nd.borrow().val();
+          // we may have found the current Node so continue
+          if connected_val==self.val { continue; }
+          adj_nds.push(Rc::clone(&connected_nd));
+        }
+      }
+      return Option::Some(adj_nds);
     }
     Option::None
   }
@@ -100,6 +111,20 @@ impl<T> Node<T>
   {
     self.edges.len()==1
   }
+}
+
+impl<T> std::cmp::PartialEq for Node<T>
+  where T: Scalar
+{
+  fn eq(&self, other: &Self) -> bool
+  {
+    self.val==other.val
+  }
+}
+
+impl<T> std::cmp::Eq for Node<T>
+  where T: Scalar
+{
 }
 
 pub struct Edge<T>
@@ -252,23 +277,21 @@ impl<T> Graph<T>
     visited[0]=true;
     while !q.is_empty()
     {
-      let nd: Rc<RefCell<Node<T>>>=q.pop_front().unwrap();  
+      let nd: Rc<RefCell<Node<T>>>=q.pop_front().unwrap();
+      if nd.borrow().is_isolated() { continue; }
       let nd_val: T=nd.borrow().val();
       // find all Nodes connected to the current Node
-      for edge in &nd.borrow().edges
+      for connected_nd in &nd.borrow().adjacent_nodes().unwrap()
       {
-        for connected_nd in &edge.borrow().nodes
+        let connected_val: T=connected_nd.borrow().val();
+        // we may have found the current Node so continue
+        if connected_val==nd_val { continue; }
+        let idx: usize=self.get_idx(connected_val).unwrap();
+        // if we haven't visited, mark as so, and add to search queue
+        if !visited[idx]
         {
-          let connected_val: T=connected_nd.borrow().val();
-          // we may have found the current Node so continue
-          if connected_val==nd_val { continue; }
-          let idx: usize=self.get_idx(connected_val).unwrap();
-          // if we haven't visited, mark as so, and add to search queue
-          if !visited[idx]
-          {
-            visited[idx]=true;
-            q.push_back(Rc::clone(&connected_nd));
-          }
+          visited[idx]=true;
+          q.push_back(Rc::clone(&connected_nd));
         }
       }
     }
@@ -368,7 +391,8 @@ impl<T> std::fmt::Display for Graph<T>
 #[cfg(test)]
 mod node_tests
 {
-  use super::Node;
+  use super::{Graph,Node};
+  use super::{Rc,RefCell};
 
   #[test]
   fn test_new()
@@ -385,6 +409,30 @@ mod node_tests
     let node=Node::<char>::new('c');
     assert!(node.val=='c');
     assert!(node.edges.is_empty());
+  }
+
+  #[test]
+  fn test_adjacent_nodes()
+  {
+    let mut gr: Graph<u32>=Graph::<u32>::new();
+    
+    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
+    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
+    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
+    let nd_four: Rc<RefCell<Node<u32>>>=gr.add_node(8128).unwrap();
+    
+    assert!(nd_one.borrow().adjacent_nodes().is_none());
+
+    gr.connect(6,28);
+    assert!(nd_one.borrow().adjacent_nodes().is_some());
+    gr.connect(6,496);
+    assert!(nd_one.borrow().adjacent_nodes().is_some());
+    
+    let adj: Vec<Rc<RefCell<Node<u32>>>>=nd_one.borrow().adjacent_nodes().unwrap();
+    assert!(adj.contains(&nd_two));
+    assert!(adj.contains(&nd_three));
+    assert!(!adj.contains(&nd_four));
+    assert!(!adj.contains(&nd_one));
   }
 }
 
