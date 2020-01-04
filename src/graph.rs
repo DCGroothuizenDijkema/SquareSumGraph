@@ -580,7 +580,7 @@ mod graph_tests
     // a new Graph is empty
     assert!(gr.is_empty());
 
-    gr.add_node(3.14).unwrap();
+    gr.add_node(3.14);
     // adding a Node makes it not empty
     assert!(!gr.is_empty());
   }
@@ -592,11 +592,11 @@ mod graph_tests
     // an empty Graph is not trivial
     assert!(!gr.is_trivial());
 
-    gr.add_node(3.14).unwrap();
+    gr.add_node(3.14);
     // adding one Node makes it trivial
     assert!(gr.is_trivial());
 
-    gr.add_node(1.618).unwrap();
+    gr.add_node(1.618);
     // adding a second Node makes it no longer trivial
     assert!(!gr.is_trivial());
   }
@@ -608,19 +608,19 @@ mod graph_tests
     // empty Graph is edgeless
     assert!(gr.is_edgeless());
     // continuously adding Nodes without connecting them keeps it edgeless
-    gr.add_node(3.14).unwrap();
+    gr.add_node(3.14);
     assert!(gr.is_edgeless());
-    gr.add_node(1.618).unwrap();
+    gr.add_node(1.618);
     assert!(gr.is_edgeless());
-    gr.add_node(2.718).unwrap();
+    gr.add_node(2.718);
     assert!(gr.is_edgeless());
-    gr.add_node(-0.083).unwrap();
+    gr.add_node(-0.083);
     assert!(gr.is_edgeless());
     
     // making connections makes it not edgeless
-    gr.connect(3.14,2.718).unwrap();
+    gr.connect(3.14,2.718);
     assert!(!gr.is_edgeless());
-    gr.connect(3.14,1.618).unwrap();
+    gr.connect(3.14,1.618);
     assert!(!gr.is_edgeless());
   }
 
@@ -632,14 +632,14 @@ mod graph_tests
     // empty Graph has order 0
     assert!(gr.order()==0);
 
-    gr.add_node(3.14).unwrap();
+    gr.add_node(3.14);
     assert!(gr.order()==1);
 
-    gr.add_node(1.618).unwrap();
+    gr.add_node(1.618);
     assert!(gr.order()==2);
     
     // making a connection doesn't affect the order
-    gr.connect(3.14,1.618).unwrap();
+    gr.connect(3.14,1.618);
     assert!(gr.order()==2);
   }
 
@@ -650,21 +650,21 @@ mod graph_tests
     // empty Graph has size 0
     assert!(gr.size()==0);
     // test adding Nodes does not affect size
-    gr.add_node(3.14).unwrap();
+    gr.add_node(3.14);
     assert!(gr.size()==0);
-    gr.add_node(1.618).unwrap();
+    gr.add_node(1.618);
     assert!(gr.size()==0);
-    gr.add_node(2.718).unwrap();
+    gr.add_node(2.718);
     assert!(gr.size()==0);
-    gr.add_node(-0.083).unwrap();
+    gr.add_node(-0.083);
     assert!(gr.size()==0);
     
     // adding connections increments the size
-    gr.connect(3.14,2.718).unwrap();
+    gr.connect(3.14,2.718);
     assert!(gr.size()==1);
-    gr.connect(3.14,1.618).unwrap();
+    gr.connect(3.14,1.618);
     assert!(gr.size()==2);
-    gr.connect(1.618,-0.083).unwrap();
+    gr.connect(1.618,-0.083);
     assert!(gr.size()==3);
   }
 
@@ -679,7 +679,7 @@ mod graph_tests
     assert!(gr.density()==0.);
     // test adding another Node does not affect density
     gr.add_node(1.618);
-    gr.connect(3.14,1.618).unwrap();
+    gr.connect(3.14,1.618);
     // connecting the two Nodes gives density 1
     assert!(gr.density()==1.);
     
@@ -690,7 +690,7 @@ mod graph_tests
     assert!(gr.density()==1./6.);
     gr.connect(3.14,2.718);
     assert!(gr.density()==1./3.);
-    gr.connect(1.618,-0.083).unwrap();
+    gr.connect(1.618,-0.083);
     assert!(gr.density()==1./2.);
   }
 
@@ -846,7 +846,7 @@ mod graph_tests
     // add the values
     for &val in vals.iter()
     {
-      gr.add_node(val).unwrap();
+      gr.add_node(val);
     }
     // values that have been added can be found
     for &val in vals.iter()
@@ -870,7 +870,7 @@ mod graph_tests
     // add the values
     for &val in vals.iter()
     {
-      gr.add_node(val).unwrap();
+      gr.add_node(val);
     }
     // values that have been added have the correct index
     for (itr,&val) in vals.iter().enumerate()
@@ -893,7 +893,7 @@ mod graph_tests
     // add the values
     for val in vals.into_iter()
     {
-      gr.add_node(*val).unwrap();
+      gr.add_node(*val);
     }
 
     // iterating the Graph gives the values in the order added
@@ -904,6 +904,6 @@ mod graph_tests
       itr+=1;
     }
     // (compile time?) test that the iter doesn't move the Graph
-    gr.add_node('y').unwrap();
+    gr.add_node('y');
   }
 }
