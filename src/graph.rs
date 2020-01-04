@@ -175,6 +175,7 @@ impl<T> Graph<T>
   /// Returns the density of the Graph
   pub fn density(&self) -> f64
   {
+    if self.is_empty()||self.is_trivial() { return 0.; }
     (2*self.size()) as f64/(self.order()*(self.order()-1)) as f64
   }
 
@@ -646,7 +647,7 @@ mod graph_tests
   fn test_size()
   {
     let mut gr: Graph<f64>=Graph::<f64>::new();
-    // empty Graph as size 0
+    // empty Graph has size 0
     assert!(gr.size()==0);
     // test adding Nodes does not affect size
     gr.add_node(3.14).unwrap();
@@ -665,6 +666,32 @@ mod graph_tests
     assert!(gr.size()==2);
     gr.connect(1.618,-0.083).unwrap();
     assert!(gr.size()==3);
+  }
+
+  #[test]
+  fn test_density()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    // empty Graph has density 0
+    assert!(gr.density()==0.);
+    // test adding one Node does not affect density
+    gr.add_node(3.14);
+    assert!(gr.density()==0.);
+    // test adding another Node does not affect density
+    gr.add_node(1.618);
+    gr.connect(3.14,1.618).unwrap();
+    // connecting the two Nodes gives density 1
+    assert!(gr.density()==1.);
+    
+    // test various other simple configurations
+    gr.add_node(2.718);
+    assert!(gr.density()==1./3.);
+    gr.add_node(-0.083);  
+    assert!(gr.density()==1./6.);
+    gr.connect(3.14,2.718);
+    assert!(gr.density()==1./3.);
+    gr.connect(1.618,-0.083).unwrap();
+    assert!(gr.density()==1./2.);
   }
 
   #[test]
