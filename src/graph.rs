@@ -137,10 +137,6 @@ impl<T> Graph<T>
   where T: Scalar
 {
   /// Returns a new Graph with an empty Vec of Nodes and Edges.
-  /// 
-  /// # Returns
-  /// * `graph` : Graph<T>
-  ///   A new Graph.
   pub fn new() -> Self
   {
     Graph{nodes:Vec::<Rc<RefCell<Node<T>>>>::new(),edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
@@ -158,7 +154,7 @@ impl<T> Graph<T>
     self.nodes.len()==1
   }
   
-  /// Returns true if the Graph has only no Edges, false otherwise
+  /// Returns true if the Graph has no Edges, false otherwise
   pub fn is_edgeless(&self) -> bool
   {
     self.edges.is_empty()
@@ -215,36 +211,37 @@ impl<T> Graph<T>
   /// # Returns
   /// * `res` : Result<Rc<RefCell<Edge<T>>>,T>
   ///   `res` is Result::Ok if the Nodes were is_connected. res::OK contains an Rc<RefCell<>> to the Edge connecting the Nodes.
-  ///   `res` is Result::Err if either of the Nodes do not exist. res::Err contains the first value which did not exist.
-  pub fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<RefCell<Edge<T>>>,T>
+  ///   `res` is Result::Err if either of the Nodes do not exist or if the Nodes are already connected. res::Err contains Option::Some if a
+  ///     Node did not exist, and the value of Option::Some is the value of the first Node which did not exist. res::Err contains 
+  ///     Option::None if the Nodes are already connected.
+  pub fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<RefCell<Edge<T>>>,Option<T>>
   {
     // check both Nodes exist
-    let node_one: Option<Rc<RefCell<Node<T>>>>=self.find(val_one);
-    if node_one.is_none() { return Result::Err(val_one); }
-    let node_two: Option<Rc<RefCell<Node<T>>>>=self.find(val_two);
-    if node_two.is_none() { return Result::Err(val_two); }
+    let nd_one: Option<Rc<RefCell<Node<T>>>>=self.find(val_one);
+    if nd_one.is_none() { return Result::Err(Option::Some(val_one)); }
+    let nd_two: Option<Rc<RefCell<Node<T>>>>=self.find(val_two);
+    if nd_two.is_none() { return Result::Err(Option::Some(val_two)); }
 
     // retrieve the Nodes
-    let node_one: Rc<RefCell<Node<T>>>=node_one.unwrap();
-    let node_two: Rc<RefCell<Node<T>>>=node_two.unwrap();
+    let nd_one: Rc<RefCell<Node<T>>>=nd_one.unwrap();
+    let nd_two: Rc<RefCell<Node<T>>>=nd_two.unwrap();
 
     // check if the Nodes are already is_connected
-    for edge in &node_one.borrow().edges
+    // but if one of them is isolated, we don't need to bother
+    if !(nd_one.borrow().is_isolated()||nd_two.borrow().is_isolated())
     {
-      let node_one_val: T=node_one.borrow().val();
-      let edge_node_zero_val: T=edge.borrow().nodes[0].borrow().val;
-      let edge_node_one_val: T=edge.borrow().nodes[1].borrow().val;
-
-      if edge_node_zero_val==node_one_val && edge_node_one_val==val_two { return Result::Err(edge_node_zero_val); }
-      if edge_node_one_val==node_one_val && edge_node_zero_val==val_two { return Result::Err(edge_node_zero_val); }
+      for  connected_nd in &nd_one.borrow().adjacent_nodes().unwrap()
+      {
+        if nd_two.borrow().val()==connected_nd.borrow().val() { return Result::Err(Option::None); }
+      }
     }
 
     // construct the Edge from the two Nodes and the result from the Edge
-    let edge: Rc<RefCell<Edge<T>>>=Rc::new(RefCell::new(Edge{nodes:vec![Rc::clone(&node_one),Rc::clone(&node_two)]}));
-    let res: Result<Rc<RefCell<Edge<T>>>,T>=Result::Ok(Rc::clone(&edge));
+    let edge: Rc<RefCell<Edge<T>>>=Rc::new(RefCell::new(Edge{nodes:vec![Rc::clone(&nd_one),Rc::clone(&nd_two)]}));
+    let res: Result<Rc<RefCell<Edge<T>>>,Option<T>>=Result::Ok(Rc::clone(&edge));
     // add the Edge to the two Nodes
-    node_one.borrow_mut().edges.push(Rc::clone(&edge));
-    node_two.borrow_mut().edges.push(Rc::clone(&edge));
+    nd_one.borrow_mut().edges.push(Rc::clone(&edge));
+    nd_two.borrow_mut().edges.push(Rc::clone(&edge));
     // add the Edge to the Graph
     self.edges.push(edge);
     res
@@ -531,31 +528,31 @@ mod graph_tests
   {
     // test error when no nodes are added
     let mut graph=Graph::<i32>::new();
-    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
     match res
     {
-      Err(x) => assert!(x==173),
+      Err(x) => assert!(x==Option::Some(173)),
       _      => (),
     }
     assert!(graph.edges.is_empty());
     
     // test error when one node has been added
     let nd_one: Rc<RefCell<Node<i32>>>=graph.add_node(173).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the second value
     match res
     {
-      Err(x) => assert!(x==-98),
+      Err(x) => assert!(x==Option::Some(-98)),
       _      => (),
     }
     assert!(graph.edges.is_empty());
 
     // test no error when both nodes have been added
     let nd_two: Rc<RefCell<Node<i32>>>=graph.add_node(-98).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
     assert!(graph.edges.len()==1); // one edge should have been added
     assert!(res.is_ok()); // Result should be Ok
     let edge_one: Rc<RefCell<Edge<i32>>>=res.unwrap();
@@ -565,7 +562,7 @@ mod graph_tests
     
     // test no error when both nodes have been added
     let nd_three: Rc<RefCell<Node<i32>>>=graph.add_node(1).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,1);
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,1);
     assert!(graph.edges.len()==2); // one edge should have been added
     assert!(res.is_ok()); // Result should be Ok
     let edge_two: Rc<RefCell<Edge<i32>>>=res.unwrap();
@@ -585,23 +582,23 @@ mod graph_tests
     assert!(&*nd_two.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_one.borrow()  as *const Edge<i32>);
     assert!(&*nd_three.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
 
-    // test error when trying to connect already is_connected Nodes
-    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(173,-98);
+    // test error when trying to connect already connected Nodes
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
     match res
     {
-      Err(x) => assert!(x==173),
+      Err(x) => assert!(x==Option::None),
       _      => (),
     }
     assert!(graph.edges.len()==2);
     // and the other way around
-    let res: Result<Rc<RefCell<Edge<i32>>>,i32>=graph.connect(-98,173);
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(-98,173);
     assert!(res.is_err());
     // the Err Result should be the first value
     match res
     {
-      Err(x) => assert!(x==173),
+      Err(x) => assert!(x==Option::None),
       _      => (),
     }
     assert!(graph.edges.len()==2);
