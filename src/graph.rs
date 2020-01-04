@@ -551,6 +551,7 @@ mod graph_tests
   fn test_new()
   {
     let graph=Graph::<usize>::new();
+    // test a new Graph has no Nodes or Edges
     assert!(graph.nodes.is_empty());
     assert!(graph.edges.is_empty());
   }
@@ -562,32 +563,20 @@ mod graph_tests
     let mut graph=Graph::<usize>::new();
     let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(2);
     assert!(res.is_ok());
-    match res
-    {
-      Ok(x) => assert!(x.borrow().val==2),
-      _     => (),
-    }
+    assert!(res.unwrap().borrow().val==2);
     assert!(graph.nodes[0].borrow().val==2);
     assert!(graph.nodes.len()==1);
     
     // test an invalid insertion
     let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(2);
     assert!(res.is_err());
-    match res
-    {
-      Err(x) => assert!(x==2),
-      _     => (),
-    }
+    assert!(res.err().unwrap()==2);
     assert!(graph.nodes.len()==1);
-
+    
     // test another valid insertion
     let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(1729);
     assert!(res.is_ok());
-    match res
-    {
-      Ok(x) => assert!(x.borrow().val==1729),
-      _     => (),
-    }
+    assert!(res.unwrap().borrow().val==1729);
     assert!(graph.nodes.len()==2);
     assert!(graph.nodes[1].borrow().val==1729);
   }
@@ -646,11 +635,7 @@ mod graph_tests
     let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
-    match res
-    {
-      Err(x) => assert!(x==Option::Some(173)),
-      _      => (),
-    }
+    assert!(res.err().unwrap().unwrap()==173);
     assert!(graph.edges.is_empty());
     
     // test error when one node has been added
@@ -658,11 +643,7 @@ mod graph_tests
     let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the second value
-    match res
-    {
-      Err(x) => assert!(x==Option::Some(-98)),
-      _      => (),
-    }
+    assert!(res.err().unwrap().unwrap()==-98);
     assert!(graph.edges.is_empty());
 
     // test no error when both nodes have been added
@@ -701,21 +682,13 @@ mod graph_tests
     let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
-    match res
-    {
-      Err(x) => assert!(x==Option::None),
-      _      => (),
-    }
+    assert!(res.err().unwrap()==Option::None);
     assert!(graph.edges.len()==2);
     // and the other way around
     let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(-98,173);
     assert!(res.is_err());
     // the Err Result should be the first value
-    match res
-    {
-      Err(x) => assert!(x==Option::None),
-      _      => (),
-    }
+    assert!(res.err().unwrap()==Option::None);
     assert!(graph.edges.len()==2);
   }
 
