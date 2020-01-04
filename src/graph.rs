@@ -539,6 +539,22 @@ mod node_tests
     gr.connect(6,496);
     assert!(!nd_one.borrow().is_leaf());
   }
+  
+  #[test]
+  fn test_eq()
+  {
+    let nd_one: Node<char>=Node::<char>::new('a');
+    let nd_two: Node<char>=Node::<char>::new('b');
+    let nd_three: Node<char>=Node::<char>::new('a');
+
+    // test equal when values are the same
+    assert!(nd_one==nd_one);
+    assert!(nd_one==nd_three);
+
+    // test not equal when values differ
+    assert!(nd_one!=nd_two);
+    assert!(nd_three!=nd_two);
+  }
 }
 
 #[cfg(test)]
