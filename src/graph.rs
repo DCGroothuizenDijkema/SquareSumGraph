@@ -566,80 +566,175 @@ mod graph_tests
   #[test]
   fn test_new()
   {
-    let graph=Graph::<usize>::new();
+    let gr=Graph::<usize>::new();
     // test a new Graph has no Nodes or Edges
-    assert!(graph.nodes.is_empty());
-    assert!(graph.edges.is_empty());
+    assert!(gr.nodes.is_empty());
+    assert!(gr.edges.is_empty());
+  }
+
+  #[test]
+  fn test_is_empty()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    // a new Graph is empty
+    assert!(gr.is_empty());
+
+    gr.add_node(3.14).unwrap();
+    // adding a Node makes it not empty
+    assert!(!gr.is_empty());
+  }
+
+  #[test]
+  fn test_is_trivial()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    // an empty Graph is not trivial
+    assert!(!gr.is_trivial());
+
+    gr.add_node(3.14).unwrap();
+    // adding one Node makes it trivial
+    assert!(gr.is_trivial());
+
+    gr.add_node(1.618).unwrap();
+    // adding a second Node makes it no longer trivial
+    assert!(!gr.is_trivial());
+  }
+
+  #[test]
+  fn test_is_edgeless()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    // empty Graph is edgeless
+    assert!(gr.is_edgeless());
+    // continuously adding Nodes without connecting them keeps it edgeless
+    gr.add_node(3.14).unwrap();
+    assert!(gr.is_edgeless());
+    gr.add_node(1.618).unwrap();
+    assert!(gr.is_edgeless());
+    gr.add_node(2.718).unwrap();
+    assert!(gr.is_edgeless());
+    gr.add_node(-0.083).unwrap();
+    assert!(gr.is_edgeless());
+    
+    // making connections makes it not edgeless
+    gr.connect(3.14,2.718).unwrap();
+    assert!(!gr.is_edgeless());
+    gr.connect(3.14,1.618).unwrap();
+    assert!(!gr.is_edgeless());
+  }
+
+  #[test]
+  fn test_order()
+  {
+    // test the order increments as we add Nodes
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    // empty Graph has order 0
+    assert!(gr.order()==0);
+
+    gr.add_node(3.14).unwrap();
+    assert!(gr.order()==1);
+
+    gr.add_node(1.618).unwrap();
+    assert!(gr.order()==2);
+    
+    // making a connection doesn't affect the order
+    gr.connect(3.14,1.618).unwrap();
+    assert!(gr.order()==2);
+  }
+
+  #[test]
+  fn test_size()
+  {
+    let mut gr: Graph<f64>=Graph::<f64>::new();
+    // empty Graph as size 0
+    assert!(gr.size()==0);
+    // test adding Nodes does not affect size
+    gr.add_node(3.14).unwrap();
+    assert!(gr.size()==0);
+    gr.add_node(1.618).unwrap();
+    assert!(gr.size()==0);
+    gr.add_node(2.718).unwrap();
+    assert!(gr.size()==0);
+    gr.add_node(-0.083).unwrap();
+    assert!(gr.size()==0);
+    
+    // adding connections increments the size
+    gr.connect(3.14,2.718).unwrap();
+    assert!(gr.size()==1);
+    gr.connect(3.14,1.618).unwrap();
+    assert!(gr.size()==2);
+    gr.connect(1.618,-0.083).unwrap();
+    assert!(gr.size()==3);
   }
 
   #[test]
   fn test_add_node()
   {
     // test a valid insertion
-    let mut graph=Graph::<usize>::new();
-    let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(2);
+    let mut gr=Graph::<usize>::new();
+    let res: Result<Rc<RefCell<Node<usize>>>,usize>=gr.add_node(2);
     assert!(res.is_ok());
     assert!(res.unwrap().borrow().val==2);
-    assert!(graph.nodes[0].borrow().val==2);
-    assert!(graph.nodes.len()==1);
+    assert!(gr.nodes[0].borrow().val==2);
+    assert!(gr.nodes.len()==1);
     
     // test an invalid insertion
-    let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(2);
+    let res: Result<Rc<RefCell<Node<usize>>>,usize>=gr.add_node(2);
     assert!(res.is_err());
     assert!(res.err().unwrap()==2);
-    assert!(graph.nodes.len()==1);
+    assert!(gr.nodes.len()==1);
     
     // test another valid insertion
-    let res: Result<Rc<RefCell<Node<usize>>>,usize>=graph.add_node(1729);
+    let res: Result<Rc<RefCell<Node<usize>>>,usize>=gr.add_node(1729);
     assert!(res.is_ok());
     assert!(res.unwrap().borrow().val==1729);
-    assert!(graph.nodes.len()==2);
-    assert!(graph.nodes[1].borrow().val==1729);
+    assert!(gr.nodes.len()==2);
+    assert!(gr.nodes[1].borrow().val==1729);
   }
 
   #[test]
   fn test_find()
   {
     let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
-    let mut graph=Graph::<f64>::new();
+    let mut gr=Graph::<f64>::new();
     
     // add the values
     for &val in vals.iter()
     {
-      graph.add_node(val).unwrap();
+      gr.add_node(val).unwrap();
     }
     // values that have been added can be found
     for &val in vals.iter()
     {
-      let res: Option<Rc<RefCell<Node<f64>>>>=graph.find(val);
+      let res: Option<Rc<RefCell<Node<f64>>>>=gr.find(val);
       assert!(res.is_some());
       let nd: Rc<RefCell<Node<f64>>>=res.unwrap();
       assert!(nd.borrow().val==val);
     }
     // a value that hasn't been added cannot be found
-    let res: Option<Rc<RefCell<Node<f64>>>>=graph.find(2.93);
+    let res: Option<Rc<RefCell<Node<f64>>>>=gr.find(2.93);
     assert!(res.is_none());
   }
   #[test]
   fn test_get_idx()
   {
     let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
-    let mut graph=Graph::<f64>::new();
+    let mut gr=Graph::<f64>::new();
     
     // add the values
     for &val in vals.iter()
     {
-      graph.add_node(val).unwrap();
+      gr.add_node(val).unwrap();
     }
     // values that have been added have the correct index
     for (itr,&val) in vals.iter().enumerate()
     {
-      let res: Option<usize>=graph.get_idx(val);
+      let res: Option<usize>=gr.get_idx(val);
       assert!(res.is_some());
       assert!(res.unwrap()==itr);
     }
     // a value that hasn't been added has no index
-    let res: Option<usize>=graph.get_idx(2.93);
+    let res: Option<usize>=gr.get_idx(2.93);
     assert!(res.is_none());
   }
 
@@ -647,25 +742,25 @@ mod graph_tests
   fn test_connect()
   {
     // test error when no nodes are added
-    let mut graph=Graph::<i32>::new();
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
+    let mut gr=Graph::<i32>::new();
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
     assert!(res.err().unwrap().unwrap()==173);
-    assert!(graph.edges.is_empty());
+    assert!(gr.edges.is_empty());
     
     // test error when one node has been added
-    let nd_one: Rc<RefCell<Node<i32>>>=graph.add_node(173).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
+    let nd_one: Rc<RefCell<Node<i32>>>=gr.add_node(173).unwrap();
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the second value
     assert!(res.err().unwrap().unwrap()==-98);
-    assert!(graph.edges.is_empty());
+    assert!(gr.edges.is_empty());
 
     // test no error when both nodes have been added
-    let nd_two: Rc<RefCell<Node<i32>>>=graph.add_node(-98).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
-    assert!(graph.edges.len()==1); // one edge should have been added
+    let nd_two: Rc<RefCell<Node<i32>>>=gr.add_node(-98).unwrap();
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,-98);
+    assert!(gr.edges.len()==1); // one edge should have been added
     assert!(res.is_ok()); // Result should be Ok
     let edge_one: Rc<RefCell<Edge<i32>>>=res.unwrap();
     // Nodes should have been added to Edge in order
@@ -673,9 +768,9 @@ mod graph_tests
     assert!(&*nd_two.borrow() as *const Node<i32> == &*edge_one.borrow().nodes[1].borrow() as *const Node<i32>);
     
     // test no error when both nodes have been added
-    let nd_three: Rc<RefCell<Node<i32>>>=graph.add_node(1).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,1);
-    assert!(graph.edges.len()==2); // one edge should have been added
+    let nd_three: Rc<RefCell<Node<i32>>>=gr.add_node(1).unwrap();
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,1);
+    assert!(gr.edges.len()==2); // one edge should have been added
     assert!(res.is_ok()); // Result should be Ok
     let edge_two: Rc<RefCell<Edge<i32>>>=res.unwrap();
     // Nodes should have been added to Edge in order
@@ -683,10 +778,10 @@ mod graph_tests
     assert!(&*nd_three.borrow() as *const Node<i32> == &*edge_two.borrow().nodes[1].borrow() as *const Node<i32>);
 
     // check matches
-    assert!(&*graph.nodes[0].borrow() as *const Node<i32> == &*graph.edges[0].borrow().nodes[0].borrow() as *const Node<i32>); 
-    assert!(&*graph.nodes[0].borrow() as *const Node<i32> == &*graph.edges[1].borrow().nodes[0].borrow() as *const Node<i32>); 
-    assert!(&*graph.nodes[1].borrow() as *const Node<i32> == &*graph.edges[0].borrow().nodes[1].borrow() as *const Node<i32>); 
-    assert!(&*graph.nodes[2].borrow() as *const Node<i32> == &*graph.edges[1].borrow().nodes[1].borrow() as *const Node<i32>);
+    assert!(&*gr.nodes[0].borrow() as *const Node<i32> == &*gr.edges[0].borrow().nodes[0].borrow() as *const Node<i32>); 
+    assert!(&*gr.nodes[0].borrow() as *const Node<i32> == &*gr.edges[1].borrow().nodes[0].borrow() as *const Node<i32>); 
+    assert!(&*gr.nodes[1].borrow() as *const Node<i32> == &*gr.edges[0].borrow().nodes[1].borrow() as *const Node<i32>); 
+    assert!(&*gr.nodes[2].borrow() as *const Node<i32> == &*gr.edges[1].borrow().nodes[1].borrow() as *const Node<i32>);
 
     // check matches
     assert!(&*nd_one.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_one.borrow()  as *const Edge<i32>);
@@ -695,17 +790,17 @@ mod graph_tests
     assert!(&*nd_three.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
 
     // test error when trying to connect already connected Nodes
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(173,-98);
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
     assert!(res.err().unwrap()==Option::None);
-    assert!(graph.edges.len()==2);
+    assert!(gr.edges.len()==2);
     // and the other way around
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=graph.connect(-98,173);
+    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(-98,173);
     assert!(res.is_err());
     // the Err Result should be the first value
     assert!(res.err().unwrap()==Option::None);
-    assert!(graph.edges.len()==2);
+    assert!(gr.edges.len()==2);
   }
 
   #[test]
@@ -727,88 +822,6 @@ mod graph_tests
     }
     // (compile time?) test that the iter doesn't move the Graph
     gr.add_node('y').unwrap();
-  }
-
-  #[test]
-  fn test_is_empty()
-  {
-    let mut gr: Graph<f64>=Graph::<f64>::new();
-    assert!(gr.is_empty());
-    gr.add_node(3.14).unwrap();
-    assert!(!gr.is_empty());
-  }
-
-  #[test]
-  fn test_is_trivial()
-  {
-    let mut gr: Graph<f64>=Graph::<f64>::new();
-    assert!(!gr.is_trivial());
-
-    gr.add_node(3.14).unwrap();
-    assert!(gr.is_trivial());
-
-    gr.add_node(1.618).unwrap();
-    assert!(!gr.is_trivial());
-  }
-
-  #[test]
-  fn test_is_edgeless()
-  {
-    let mut gr: Graph<f64>=Graph::<f64>::new();
-    assert!(gr.is_edgeless());
-    gr.add_node(3.14).unwrap();
-    assert!(gr.is_edgeless());
-    gr.add_node(1.618).unwrap();
-    assert!(gr.is_edgeless());
-    gr.add_node(2.718).unwrap();
-    assert!(gr.is_edgeless());
-    gr.add_node(-0.083).unwrap();
-    assert!(gr.is_edgeless());
-    
-    gr.connect(3.14,2.718).unwrap();
-    assert!(!gr.is_edgeless());
-    gr.connect(3.14,1.618).unwrap();
-    assert!(!gr.is_edgeless());
-  }
-
-  #[test]
-  fn test_order()
-  {
-    let mut gr: Graph<f64>=Graph::<f64>::new();
-    assert!(gr.order()==0);
-
-    gr.add_node(3.14).unwrap();
-    assert!(gr.order()==1);
-
-    gr.add_node(1.618).unwrap();
-    assert!(gr.order()==2);
-    
-    gr.connect(3.14,1.618).unwrap();
-    assert!(gr.order()==2);
-  }
-
-  #[test]
-  fn test_size()
-  {
-    let mut gr: Graph<f64>=Graph::<f64>::new();
-    assert!(gr.size()==0);
-    gr.add_node(3.14).unwrap();
-    assert!(gr.size()==0);
-    gr.add_node(1.618).unwrap();
-    assert!(gr.size()==0);
-    gr.add_node(2.718).unwrap();
-    assert!(gr.size()==0);
-    gr.add_node(-0.083).unwrap();
-    assert!(gr.size()==0);
-    
-    gr.connect(3.14,2.718).unwrap();
-    assert!(gr.size()==1);
-
-    gr.connect(3.14,1.618).unwrap();
-    assert!(gr.size()==2);
-
-    gr.connect(1.618,-0.083).unwrap();
-    assert!(gr.size()==3);
   }
 
   #[test]
