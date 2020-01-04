@@ -95,13 +95,13 @@ impl<T> Node<T>
   /// Returns true if no Edges are connectd to a Node, false otherwise
   pub fn is_isolated(&self) -> bool
   {
-    self.edges.len()==0
+    self.degree()==0
   }
 
   /// Returns true if only one Edge is connected to a Node, false otherwise
   pub fn is_leaf(&self) -> bool
   {
-    self.edges.len()==1
+    self.degree()==1
   }
 }
 
