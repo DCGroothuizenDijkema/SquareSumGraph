@@ -720,52 +720,6 @@ mod graph_tests
   }
 
   #[test]
-  fn test_find()
-  {
-    let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
-    let mut gr=Graph::<f64>::new();
-    
-    // add the values
-    for &val in vals.iter()
-    {
-      gr.add_node(val).unwrap();
-    }
-    // values that have been added can be found
-    for &val in vals.iter()
-    {
-      let res: Option<Rc<RefCell<Node<f64>>>>=gr.find(val);
-      assert!(res.is_some());
-      let nd: Rc<RefCell<Node<f64>>>=res.unwrap();
-      assert!(nd.borrow().val==val);
-    }
-    // a value that hasn't been added cannot be found
-    let res: Option<Rc<RefCell<Node<f64>>>>=gr.find(2.93);
-    assert!(res.is_none());
-  }
-  #[test]
-  fn test_idx()
-  {
-    let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
-    let mut gr=Graph::<f64>::new();
-    
-    // add the values
-    for &val in vals.iter()
-    {
-      gr.add_node(val).unwrap();
-    }
-    // values that have been added have the correct index
-    for (itr,&val) in vals.iter().enumerate()
-    {
-      let res: Option<usize>=gr.idx(val);
-      assert!(res.is_some());
-      assert!(res.unwrap()==itr);
-    }
-    // a value that hasn't been added has no index
-    let res: Option<usize>=gr.idx(2.93);
-    assert!(res.is_none());
-  }
-
-  #[test]
   fn test_connect()
   {
     // test error when no nodes are added
@@ -831,39 +785,26 @@ mod graph_tests
   }
 
   #[test]
-  fn test_iter()
-  {
-    let mut gr: Graph<char>=Graph::<char>::new();
-    let vals: [char;4]=['a','b','c','z'];
-    
-    for val in vals.into_iter()
-    {
-      gr.add_node(*val).unwrap();
-    }
-
-    let mut itr: usize=0;
-    for nd in gr.into_iter()
-    {
-      assert!(nd.borrow().val==vals[itr]);
-      itr+=1;
-    }
-    // (compile time?) test that the iter doesn't move the Graph
-    gr.add_node('y').unwrap();
-  }
-
-  #[test]
   fn test_is_connected()
   {
     let mut gr: Graph<i32>=Graph::<i32>::new();
+    // an empty Graph is not connected
     assert!(!gr.is_connected());
     gr.add_node(10858);
+    // a trivial Graph is not connected
     assert!(!gr.is_connected());
+
+    // add a new Node
     gr.add_node(8191);
     assert!(!gr.is_connected());
     gr.connect(10858,8191);
+    // connecting the two makes the Graph connected
     assert!(gr.is_connected());
     gr.add_node(78557);
+    // adding a third Node makes the Graph disconnected
     assert!(!gr.is_connected());
+
+    // progressively add new Nodes and connections and test connectedness
     gr.connect(78557,10858);
     assert!(gr.is_connected());
     gr.add_node(6);
@@ -894,5 +835,75 @@ mod graph_tests
     assert!(gr.hamiltonian_path().is_none());
     gr.connect(2.718,-0.083);
     // assert!(gr.hamiltonian_path().is_some());
+  }
+
+  #[test]
+  fn test_find()
+  {
+    let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
+    let mut gr=Graph::<f64>::new();
+    
+    // add the values
+    for &val in vals.iter()
+    {
+      gr.add_node(val).unwrap();
+    }
+    // values that have been added can be found
+    for &val in vals.iter()
+    {
+      let res: Option<Rc<RefCell<Node<f64>>>>=gr.find(val);
+      assert!(res.is_some());
+      let nd: Rc<RefCell<Node<f64>>>=res.unwrap();
+      assert!(nd.borrow().val==val);
+    }
+    // a value that hasn't been added cannot be found
+    let res: Option<Rc<RefCell<Node<f64>>>>=gr.find(2.93);
+    assert!(res.is_none());
+  }
+
+  #[test]
+  fn test_idx()
+  {
+    let vals: [f64;5]=[3.14,2.72,1.20,1.62,1.64];
+    let mut gr=Graph::<f64>::new();
+    
+    // add the values
+    for &val in vals.iter()
+    {
+      gr.add_node(val).unwrap();
+    }
+    // values that have been added have the correct index
+    for (itr,&val) in vals.iter().enumerate()
+    {
+      let res: Option<usize>=gr.idx(val);
+      assert!(res.is_some());
+      assert!(res.unwrap()==itr);
+    }
+    // a value that hasn't been added has no index
+    let res: Option<usize>=gr.idx(2.93);
+    assert!(res.is_none());
+  }
+
+  #[test]
+  fn test_iter()
+  {
+    let mut gr: Graph<char>=Graph::<char>::new();
+    let vals: [char;4]=['a','b','c','z'];
+    
+    // add the values
+    for val in vals.into_iter()
+    {
+      gr.add_node(*val).unwrap();
+    }
+
+    // iterating the Graph gives the values in the order added
+    let mut itr: usize=0;
+    for nd in gr.into_iter()
+    {
+      assert!(nd.borrow().val==vals[itr]);
+      itr+=1;
+    }
+    // (compile time?) test that the iter doesn't move the Graph
+    gr.add_node('y').unwrap();
   }
 }
