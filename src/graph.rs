@@ -365,7 +365,7 @@ impl<T> std::fmt::Display for Graph<T>
     write!(f, "\nEdges:\n  ");
     for (itr,ed) in self.edges.iter().enumerate()
     {
-      write!(f, "{} -> {}",ed.borrow().nodes[0].borrow().val(),ed.borrow().nodes[1].borrow().val());
+      write!(f, "{} - {}",ed.borrow().nodes[0].borrow().val(),ed.borrow().nodes[1].borrow().val());
       if itr!=self.size()-1 { write!(f, ",\n  "); }
     }
     write!(f,"")
