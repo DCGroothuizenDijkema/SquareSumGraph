@@ -54,14 +54,6 @@ impl<T> Node<T>
   where T: Scalar
 {
   /// Returns a new Node with a given value and an empty Vec of Edges.
-  /// 
-  /// # Parameters
-  /// * `val` : T
-  ///   The value for the Node to take.
-  /// 
-  /// # Returns
-  /// * `node` : Node<T>
-  ///   A new Node with given value.
   pub fn new(val: T) -> Self
   {
     Node{val:val,edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
@@ -73,7 +65,7 @@ impl<T> Node<T>
     self.val
   }
 
-  /// Return all Nodes adjacent to a Node
+  /// Return a Vec of all Nodes adjacent to a Node
   pub fn adjacent_nodes(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
   {
     if !self.is_isolated()
@@ -118,6 +110,7 @@ impl<T> std::cmp::PartialEq for Node<T>
 {
   fn eq(&self, other: &Self) -> bool
   {
+    // Nodes are equal if there values are equal
     self.val==other.val
   }
 }
