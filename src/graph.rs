@@ -270,13 +270,11 @@ impl<T> Graph<T>
       let nd: Rc<RefCell<Node<T>>>=q.pop_front().unwrap();
       if nd.borrow().is_isolated() { continue; }
       let nd_val: T=nd.borrow().val();
-      // find all Nodes connected to the current Node
+      // search all Nodes connected to the current Node
       for connected_nd in &nd.borrow().adjacent_nodes().unwrap()
       {
-        let connected_val: T=connected_nd.borrow().val();
-        // we may have found the current Node so continue
-        if connected_val==nd_val { continue; }
-        let idx: usize=self.get_idx(connected_val).unwrap();
+        // index of connected Node
+        let idx: usize=self.get_idx(connected_nd.borrow().val()).unwrap();
         // if we haven't visited, mark as so, and add to search queue
         if !visited[idx]
         {
@@ -387,18 +385,40 @@ mod node_tests
   #[test]
   fn test_new()
   {
+    // create a bunch of Nodes with different value types and check they get set
+    // and the Edge Vec is empty
     let node=Node::<i32>::new(0);
     assert!(node.val==0);
     assert!(node.edges.is_empty());
+
     let node=Node::<bool>::new(true);
     assert!(node.val==true);
     assert!(node.edges.is_empty());
+
     let node=Node::<f64>::new(3.14);
     assert!(node.val==3.14);
     assert!(node.edges.is_empty());
+
     let node=Node::<char>::new('c');
     assert!(node.val=='c');
     assert!(node.edges.is_empty());
+  }
+
+  #[test]
+  fn test_val()
+  {
+    // create a bunch of Nodes with different value types and check they get set with Node::val()
+    let node=Node::<i32>::new(0);
+    assert!(node.val()==0);
+
+    let node=Node::<bool>::new(true);
+    assert!(node.val()==true);
+
+    let node=Node::<f64>::new(3.14);
+    assert!(node.val()==3.14);
+
+    let node=Node::<char>::new('c');
+    assert!(node.val()=='c');
   }
 
   #[test]
