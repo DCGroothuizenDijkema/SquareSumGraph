@@ -514,6 +514,31 @@ mod node_tests
     gr.connect(6,496);
     assert!(!nd_one.borrow().is_isolated());
   }
+
+  #[test]
+  fn test_is_leaf()
+  {
+    let mut gr: Graph<u32>=Graph::<u32>::new();
+    
+    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
+    assert!(!nd_one.borrow().is_leaf());
+    // adding Nodes keeps it not a leaf Node
+    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
+    assert!(!nd_one.borrow().is_leaf());
+    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
+    assert!(!nd_one.borrow().is_leaf());
+    
+    // connecting the other Nodes keeps it not a leaf Node
+    gr.connect(496,28);
+    assert!(!nd_one.borrow().is_leaf());
+    
+    // connecting the Node makes it a leaf Node
+    gr.connect(6,28);
+    assert!(nd_one.borrow().is_leaf());
+    // connecting to the other Node makes it not a leaf Node again
+    gr.connect(6,496);
+    assert!(!nd_one.borrow().is_leaf());
+  }
 }
 
 #[cfg(test)]
