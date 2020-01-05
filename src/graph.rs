@@ -337,6 +337,26 @@ impl<T> Graph<T>
   {
     self.nodes.iter().position(|x| x.borrow().val()==val)
   }
+
+  /// Depth-first search helper function for hamiltonian_path()
+  fn dfs(&self,nd: Rc<RefCell<Node<T>>>,path: &mut Vec<Rc<RefCell<Node<T>>>>) -> bool
+  {
+    // if the path is as big as the Graph, a path has been found
+    if path.len()==self.order() { return true; }
+    
+    // scan across all adjacent Nodes
+    for adj_nd in &nd.borrow().adjacent_nodes().unwrap()
+    {
+      // if the adjacent Node is already in the path, ignore it: this is a hamiltonian path, after all
+      if path.iter().position(|x| x.borrow().val()==adj_nd.borrow().val()).is_some() { continue; }
+
+      // find a path off the adjacent Node just added to the path
+      path.push(Rc::clone(&adj_nd));
+      if self.dfs(Rc::clone(&adj_nd),path) { return true; }
+      path.pop();
+    }
+    false
+  }
 }
 
 impl<'a,T> std::iter::IntoIterator for &'a Graph<T>
@@ -905,5 +925,44 @@ mod graph_tests
     }
     // (compile time?) test that the iter doesn't move the Graph
     gr.add_node('y');
+  }
+  
+  #[test]
+  fn test_dfs()
+  {
+    // we don't need to test for empty, trivial, or edgeless Graphs, as the hamiltonian_path() checks for that, and dfs() is not public
+    let mut gr: Graph<char>=Graph::<char>::new();
+    let mut path: Vec<Rc<RefCell<Node<char>>>>=Vec::<Rc<RefCell<Node<char>>>>::new();
+    
+    let nd_one: Rc<RefCell<Node<char>>>=gr.add_node('a').unwrap();
+    let nd_two: Rc<RefCell<Node<char>>>=gr.add_node('b').unwrap();
+    
+    // connecting Nodes one and two makes a path
+    gr.connect('a','b');
+    assert!(gr.dfs(Rc::clone(&nd_one),&mut path));
+    assert!(path[0].borrow().val=='b');
+    assert!(path[1].borrow().val=='a');
+    
+    // adding on a third Node makes a path
+    let mut path: Vec<Rc<RefCell<Node<char>>>>=Vec::<Rc<RefCell<Node<char>>>>::new();
+    let nd_three: Rc<RefCell<Node<char>>>=gr.add_node('c').unwrap();
+    gr.connect('a','c');
+    assert!(gr.dfs(Rc::clone(&nd_one),&mut path));
+    assert!(path[0].borrow().val=='b');
+    assert!(path[1].borrow().val=='a');
+    assert!(path[2].borrow().val=='c');
+    
+    // adding on a fourth Node at first breaks the path
+    let mut path: Vec<Rc<RefCell<Node<char>>>>=Vec::<Rc<RefCell<Node<char>>>>::new();
+    let nd_four: Rc<RefCell<Node<char>>>=gr.add_node('d').unwrap();
+    gr.connect('a','d');
+    assert!(!gr.dfs(Rc::clone(&nd_one),&mut path));
+    // but connecting it up properly makes the path again
+    gr.connect('b','d');
+    assert!(gr.dfs(Rc::clone(&nd_one),&mut path));
+    assert!(path[0].borrow().val=='b');
+    assert!(path[1].borrow().val=='d');
+    assert!(path[2].borrow().val=='a');
+    assert!(path[3].borrow().val=='c');
   }
 }
