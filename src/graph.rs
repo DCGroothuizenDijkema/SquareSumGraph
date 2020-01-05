@@ -466,17 +466,15 @@ impl<T> Path<T>
   }
 }
 
-impl<T> std::fmt::Display for Path<T>
+impl<'a,T> std::iter::IntoIterator for &'a Path<T>
   where T: Scalar
 {
-  fn fmt(&self,f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  type Item = &'a Rc<RefCell<Node<T>>>;
+  type IntoIter = std::slice::Iter<'a,Rc<RefCell<Node<T>>>>;
+
+  fn into_iter(self) -> std::slice::Iter<'a,Rc<RefCell<Node<T>>>>
   {
-    for (itr,nd) in self.nodes.iter().enumerate()
-    {
-      write!(f,"{}",nd.borrow());
-      if itr!=self.nodes.len()-1 { write!(f, " -> "); }
-    }
-    write!(f,"")
+    self.nodes.iter()
   }
 }
 
@@ -488,6 +486,20 @@ impl<T> std::ops::Index<usize> for Path<T>
   fn index(&self,ind: usize) -> &Self::Output
   {
     &self.nodes[ind]
+  }
+}
+
+impl<T> std::fmt::Display for Path<T>
+  where T: Scalar
+{
+  fn fmt(&self,f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    for (itr,nd) in self.nodes.iter().enumerate()
+    {
+      write!(f,"{}",nd.borrow());
+      if itr!=self.nodes.len()-1 { write!(f, " -> "); }
+    }
+    write!(f,"")
   }
 }
 
@@ -1139,6 +1151,33 @@ mod path_tests
     assert!(p.nodes.len()==1);
     p.pop();
     assert!(p.nodes.len()==0);
+  }
+
+  #[test]
+  fn test_iter()
+  {
+    let mut p: Path<char>=Path::<char>::new();
+    let vals: [char;4]=['a','b','c','z'];
+
+    // make some nodes
+    let nd_one: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('a')));
+    let nd_two: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('b')));
+    let nd_three: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('c')));
+    let nd_four: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('z')));
+    
+    // add the Nodes
+    p.push(&nd_one);
+    p.push(&nd_two);
+    p.push(&nd_three);
+    p.push(&nd_four);
+
+    // iterating the Path gives the values in the order added
+    let mut itr: usize=0;
+    for nd in p.into_iter()
+    {
+      assert!(nd.borrow().val==vals[itr]);
+      itr+=1;
+    }
   }
 
   #[test]
