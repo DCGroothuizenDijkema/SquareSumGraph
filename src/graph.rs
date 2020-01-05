@@ -447,16 +447,22 @@ impl<T> Path<T>
     Path{nodes:Vec::<Rc<RefCell<Node<T>>>>::new()}
   }
 
+  /// Return the length of the Path
+  pub fn len(&self) -> usize
+  {
+    self.nodes.len()
+  }
+
   /// Push a new Node onto the Path
   pub fn push(&mut self,nd: &Rc<RefCell<Node<T>>>)
   {
-    &self.nodes.push(Rc::clone(&nd));
+    self.nodes.push(Rc::clone(&nd));
   }
 
   /// Pop the last Node off the Path
   pub fn pop(&mut self)
   {
-    &self.nodes.pop();
+    self.nodes.pop();
   }
 }
 
@@ -1072,7 +1078,27 @@ mod path_tests
     let p: Path<i32>=Path::<i32>::new();
     assert!(p.nodes.len()==0);
   }
-  
+
+  #[test]
+  fn test_len()
+  {
+    // test a new Path has len 0
+    let mut p: Path<char>=Path::<char>::new();
+    assert!(p.len()==0);
+    
+    let nd_one: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('a')));
+    let nd_two: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('b')));
+    let nd_three: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('c')));
+    
+    // pushing Nodes increments the length
+    p.push(&nd_one);
+    assert!(p.len()==1);
+    p.push(&nd_two);
+    assert!(p.len()==2);
+    p.push(&nd_three);
+    assert!(p.len()==3);
+  }
+
   #[test]
   fn test_push()
   {
