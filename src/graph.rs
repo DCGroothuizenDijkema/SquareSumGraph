@@ -123,7 +123,7 @@ impl<T> std::cmp::Eq for Node<T>
 impl<T> std::fmt::Display for Node<T>
   where T: Scalar
 {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  fn fmt(&self,f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
   {
     write!(f,"{}",self.val)
   }
@@ -133,6 +133,15 @@ pub struct Edge<T>
   where T: Scalar
 {
   nodes: Vec<Rc<RefCell<Node<T>>>>,
+}
+
+impl<T> std::fmt::Display for Edge<T>
+  where T: Scalar
+{
+  fn fmt(&self,f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f,"{} - {}",self.nodes[0].borrow(),self.nodes[1].borrow())
+  }
 }
 
 pub struct Graph<T>
@@ -416,7 +425,7 @@ impl<T> std::fmt::Display for Graph<T>
     write!(f,"\nEdges:\n  ");
     for (itr,ed) in self.edges.iter().enumerate()
     {
-      write!(f,"{} - {}",ed.borrow().nodes[0].borrow(),ed.borrow().nodes[1].borrow());
+      write!(f,"{}",ed.borrow());
       if itr!=self.size()-1 { write!(f, ",\n  "); }
     }
     write!(f,"")
