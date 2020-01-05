@@ -288,6 +288,12 @@ impl<T> Graph<T>
     visited.iter().all(|&x| x==true)
   }
 
+  /// Find a Hamiltonian path in a Graph
+  /// 
+  /// # Returns
+  /// * `path` : Option<Vec<Rc<RefCell<Node<T>>>>>
+  ///   `path` is Option::Some if a Hamiltonian path exists. path::Some contains a Vec of the path.
+  ///   `path` is Option::None if no Hamiltonian path exists.
   pub fn hamiltonian_path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
   {
     // the graph must be connected
