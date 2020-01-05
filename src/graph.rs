@@ -120,6 +120,15 @@ impl<T> std::cmp::Eq for Node<T>
 {
 }
 
+impl<T> std::fmt::Display for Node<T>
+  where T: Scalar
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f,"{}",self.val)
+  }
+}
+
 pub struct Edge<T>
   where T: Scalar
 {
@@ -396,18 +405,18 @@ impl<'a,T> std::iter::IntoIterator for &'a Graph<T>
 impl<T> std::fmt::Display for Graph<T>
   where T: Scalar
 {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  fn fmt(&self,f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
   {
-    write!(f, "Nodes:\n  ");
+    write!(f,"Nodes:\n  ");
     for (itr,nd) in self.nodes.iter().enumerate()
     {
-      write!(f, "{}",nd.borrow().val());
+      write!(f,"{}",nd.borrow());
       if itr!=self.order()-1 { write!(f, ","); }
     }
-    write!(f, "\nEdges:\n  ");
+    write!(f,"\nEdges:\n  ");
     for (itr,ed) in self.edges.iter().enumerate()
     {
-      write!(f, "{} - {}",ed.borrow().nodes[0].borrow().val(),ed.borrow().nodes[1].borrow().val());
+      write!(f,"{} - {}",ed.borrow().nodes[0].borrow(),ed.borrow().nodes[1].borrow());
       if itr!=self.size()-1 { write!(f, ",\n  "); }
     }
     write!(f,"")
