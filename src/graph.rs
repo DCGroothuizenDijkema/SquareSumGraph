@@ -294,12 +294,28 @@ impl<T> Graph<T>
     if !self.is_connected() { return Option::None; }
     
     let mut degree_one_nodes_cnt: usize=0;
-    // the Graph cannot have more than two leaf Nodes
-    for nd in &self.nodes
+    let mut first_leaf_node: usize=0;
+    // the Graph cannot have more than two leaf Nodes and save the first one found
+    for (itr,nd) in self.nodes.iter().enumerate()
     {
-      if nd.borrow().is_leaf() { degree_one_nodes_cnt += 1; }
+      if nd.borrow().is_leaf()
+      {
+        degree_one_nodes_cnt += 1;
+        if first_leaf_node==0 { first_leaf_node=itr; }
+      }
       if degree_one_nodes_cnt>2 { return Option::None; }
     }
+
+    // now do a depth first search
+    // either get the first leaf node or the first node
+    let init_node: Rc<RefCell<Node<T>>> = Rc::clone(&self.nodes[first_leaf_node]);
+    // initialise the path with the first node
+    let mut path: Vec<Rc<RefCell<Node<T>>>>=Vec::<Rc<RefCell<Node<T>>>>::new();
+    path.push(Rc::clone(&init_node));
+    // do the search
+    let res: bool=self.dfs(Rc::clone(&init_node),&mut path);
+
+    if res { return Option::Some(path); }
 
     Option::None
   }
@@ -854,7 +870,7 @@ mod graph_tests
     gr.connect(2.718,1.618);
     assert!(gr.hamiltonian_path().is_none());
     gr.connect(2.718,-0.083);
-    // assert!(gr.hamiltonian_path().is_some());
+    assert!(gr.hamiltonian_path().is_some());
   }
 
   #[test]
@@ -905,29 +921,6 @@ mod graph_tests
   }
 
   #[test]
-  fn test_iter()
-  {
-    let mut gr: Graph<char>=Graph::<char>::new();
-    let vals: [char;4]=['a','b','c','z'];
-    
-    // add the values
-    for val in vals.into_iter()
-    {
-      gr.add_node(*val);
-    }
-
-    // iterating the Graph gives the values in the order added
-    let mut itr: usize=0;
-    for nd in gr.into_iter()
-    {
-      assert!(nd.borrow().val==vals[itr]);
-      itr+=1;
-    }
-    // (compile time?) test that the iter doesn't move the Graph
-    gr.add_node('y');
-  }
-  
-  #[test]
   fn test_dfs()
   {
     // we don't need to test for empty, trivial, or edgeless Graphs, as the hamiltonian_path() checks for that, and dfs() is not public
@@ -964,5 +957,28 @@ mod graph_tests
     assert!(path[1].borrow().val=='d');
     assert!(path[2].borrow().val=='a');
     assert!(path[3].borrow().val=='c');
+  }
+
+  #[test]
+  fn test_iter()
+  {
+    let mut gr: Graph<char>=Graph::<char>::new();
+    let vals: [char;4]=['a','b','c','z'];
+    
+    // add the values
+    for val in vals.into_iter()
+    {
+      gr.add_node(*val);
+    }
+
+    // iterating the Graph gives the values in the order added
+    let mut itr: usize=0;
+    for nd in gr.into_iter()
+    {
+      assert!(nd.borrow().val==vals[itr]);
+      itr+=1;
+    }
+    // (compile time?) test that the iter doesn't move the Graph
+    gr.add_node('y');
   }
 }
