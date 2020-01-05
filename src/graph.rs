@@ -310,9 +310,9 @@ impl<T> Graph<T>
   /// 
   /// # Returns
   /// * `path` : Option<Vec<Rc<RefCell<Node<T>>>>>
-  ///   `path` is Option::Some if a Hamiltonian path exists. path::Some contains a Vec of the path.
+  ///   `path` is Option::Some if a Hamiltonian path exists. path::Some contains a Path of the path.
   ///   `path` is Option::None if no Hamiltonian path exists.
-  pub fn hamiltonian_path(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
+  pub fn hamiltonian_path(&self) -> Option<Path<T>>
   {
     // the graph must be connected
     if !self.is_connected() { return Option::None; }
@@ -334,8 +334,8 @@ impl<T> Graph<T>
     // either get the first leaf node or the first node
     let init_node: Rc<RefCell<Node<T>>> = Rc::clone(&self.nodes[first_leaf_node]);
     // initialise the path with the first node
-    let mut path: Vec<Rc<RefCell<Node<T>>>>=Vec::<Rc<RefCell<Node<T>>>>::new();
-    path.push(Rc::clone(&init_node));
+    let mut path: Path<T>=Path::<T>::new();
+    path.push(&init_node);
     // do the search
     let res: bool=self.dfs(Rc::clone(&init_node),&mut path);
 
