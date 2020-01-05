@@ -445,6 +445,11 @@ impl<T> Path<T>
   {
     Path{nodes:Vec::<Rc<RefCell<Node<T>>>>::new()}
   }
+
+  pub fn append(&mut self,nd: &Rc<RefCell<Node<T>>>)
+  {
+    &self.nodes.push(Rc::clone(&nd));
+  }
 }
 
 
@@ -1025,12 +1030,32 @@ mod graph_tests
 #[cfg(test)]
 mod path_tests
 {
-  use super::Path;
+  use super::{Path,Node,Rc,RefCell};
   
   #[test]
   fn test_new()
   {
+    // test a new Path has no Nodes
     let p: Path<i32>=Path::<i32>::new();
     assert!(p.nodes.len()==0);
+  }
+  
+  #[test]
+  fn test_append()
+  {
+    let mut p: Path<f64>=Path::<f64>::new();
+    
+    let nd_one: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(0.11)));
+    let nd_two: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(2.718)));
+    let nd_three: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(3.14)));
+
+    p.append(&nd_one);
+    p.append(&nd_two);
+    p.append(&nd_three);
+
+    // check the Nodes have been added
+    assert!(&*p.nodes[0].borrow() as *const Node<f64> == &*nd_one.borrow() as *const Node<f64>);
+    assert!(&*p.nodes[1].borrow() as *const Node<f64> == &*nd_two.borrow() as *const Node<f64>);
+    assert!(&*p.nodes[2].borrow() as *const Node<f64> == &*nd_three.borrow() as *const Node<f64>);
   }
 }
