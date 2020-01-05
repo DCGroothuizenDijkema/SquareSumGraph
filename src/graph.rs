@@ -466,13 +466,25 @@ impl<T> Path<T>
   }
 }
 
-impl<'a,T> std::iter::IntoIterator for &'a Path<T>
+impl<T> std::iter::IntoIterator for Path<T>
   where T: Scalar
 {
-  type Item = &'a Rc<RefCell<Node<T>>>;
-  type IntoIter = std::slice::Iter<'a,Rc<RefCell<Node<T>>>>;
+  type Item=Rc<RefCell<Node<T>>>;
+  type IntoIter=std::vec::IntoIter<Self::Item>;
 
-  fn into_iter(self) -> std::slice::Iter<'a,Rc<RefCell<Node<T>>>>
+  fn into_iter(self) -> Self::IntoIter
+  {
+    self.nodes.into_iter()
+  }
+}
+
+impl<'a,T> IntoIterator for &'a Path<T>
+  where T: Scalar
+{
+  type Item=&'a Rc<RefCell<Node<T>>>;
+  type IntoIter=std::slice::Iter<'a,Rc<RefCell<Node<T>>>>;
+
+  fn into_iter(self) -> Self::IntoIter
   {
     self.nodes.iter()
   }
@@ -1173,7 +1185,17 @@ mod path_tests
 
     // iterating the Path gives the values in the order added
     let mut itr: usize=0;
-    for nd in p.into_iter()
+    // test shared reference iterator
+    for nd in &p
+    {
+      assert!(nd.borrow().val==vals[itr]);
+      itr+=1;
+    }
+
+    // iterating the Path gives the values in the order added
+    let mut itr: usize=0;
+    // test move iterator
+    for nd in p
     {
       assert!(nd.borrow().val==vals[itr]);
       itr+=1;
