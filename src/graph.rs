@@ -441,14 +441,22 @@ pub struct Path<T>
 impl<T> Path<T>
   where T: Scalar
 {
+  /// Return a new Path with an empty Vec of Nodes
   pub fn new() -> Self
   {
     Path{nodes:Vec::<Rc<RefCell<Node<T>>>>::new()}
   }
 
-  pub fn append(&mut self,nd: &Rc<RefCell<Node<T>>>)
+  /// Push a new Node onto the Path
+  pub fn push(&mut self,nd: &Rc<RefCell<Node<T>>>)
   {
     &self.nodes.push(Rc::clone(&nd));
+  }
+
+  /// Pop the last Node off the Path
+  pub fn pop(&mut self)
+  {
+    &self.nodes.pop();
   }
 }
 
@@ -1041,7 +1049,7 @@ mod path_tests
   }
   
   #[test]
-  fn test_append()
+  fn test_push()
   {
     let mut p: Path<f64>=Path::<f64>::new();
     
@@ -1049,13 +1057,36 @@ mod path_tests
     let nd_two: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(2.718)));
     let nd_three: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(3.14)));
 
-    p.append(&nd_one);
-    p.append(&nd_two);
-    p.append(&nd_three);
+    p.push(&nd_one);
+    p.push(&nd_two);
+    p.push(&nd_three);
 
     // check the Nodes have been added
     assert!(&*p.nodes[0].borrow() as *const Node<f64> == &*nd_one.borrow() as *const Node<f64>);
     assert!(&*p.nodes[1].borrow() as *const Node<f64> == &*nd_two.borrow() as *const Node<f64>);
     assert!(&*p.nodes[2].borrow() as *const Node<f64> == &*nd_three.borrow() as *const Node<f64>);
+  }
+
+  #[test]
+  fn test_pop()
+  {
+    let mut p: Path<f64>=Path::<f64>::new();
+    
+    let nd_one: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(0.11)));
+    let nd_two: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(2.718)));
+    let nd_three: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(3.14)));
+
+    p.push(&nd_one);
+    p.push(&nd_two);
+    p.push(&nd_three);
+
+    // test popping decreases the length
+    assert!(p.nodes.len()==3);
+    p.pop();
+    assert!(p.nodes.len()==2);
+    p.pop();
+    assert!(p.nodes.len()==1);
+    p.pop();
+    assert!(p.nodes.len()==0);
   }
 }
