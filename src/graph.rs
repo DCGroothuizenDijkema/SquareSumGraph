@@ -474,6 +474,17 @@ impl<T> std::fmt::Display for Path<T>
   }
 }
 
+impl<T> std::ops::Index<usize> for Path<T>
+  where T: Scalar
+{
+  type Output=Rc<RefCell<Node<T>>>;
+
+  fn index(&self,ind: usize) -> &Self::Output
+  {
+    &self.nodes[ind]
+  }
+}
+
 
 //
 // Tests
@@ -1102,5 +1113,24 @@ mod path_tests
     assert!(p.nodes.len()==1);
     p.pop();
     assert!(p.nodes.len()==0);
+  }
+
+  #[test]
+  fn test_index()
+  {
+    let mut p: Path<f64>=Path::<f64>::new();
+    
+    let nd_one: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(0.11)));
+    let nd_two: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(2.718)));
+    let nd_three: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(3.14)));
+
+    p.push(&nd_one);
+    p.push(&nd_two);
+    p.push(&nd_three);
+
+    // check the Nodes have been added
+    assert!(&*p[0].borrow() as *const Node<f64> == &*nd_one.borrow() as *const Node<f64>);
+    assert!(&*p[1].borrow() as *const Node<f64> == &*nd_two.borrow() as *const Node<f64>);
+    assert!(&*p[2].borrow() as *const Node<f64> == &*nd_three.borrow() as *const Node<f64>);
   }
 }
