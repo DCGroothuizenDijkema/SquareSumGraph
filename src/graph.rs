@@ -438,7 +438,7 @@ impl<T> std::fmt::Display for Graph<T>
     for (itr,ed) in self.edges.iter().enumerate()
     {
       write!(f,"{}",ed.borrow());
-      if itr!=self.size()-1 { write!(f, ",\n  "); }
+      if itr!=self.size()-1 { write!(f,",\n  "); }
     }
     write!(f,"")
   }
@@ -475,6 +475,12 @@ impl<T> Path<T>
   pub fn pop(&mut self)
   {
     self.nodes.pop();
+  }
+
+  /// Return an iterator over the Path
+  pub fn iter(&self) -> std::slice::Iter<Rc<RefCell<Node<T>>>>
+  {
+    self.nodes.iter()
   }
 }
 
@@ -717,7 +723,7 @@ mod node_tests
 mod graph_tests
 {
   use super::{Rc,Option,Result,RefCell};
-  use super::{Graph,Node,Edge};
+  use super::{Graph,Node,Edge,Path};
 
   #[test]
   fn test_new()
@@ -1044,7 +1050,7 @@ mod graph_tests
   {
     // we don't need to test for empty, trivial, or edgeless Graphs, as the hamiltonian_path() checks for that, and dfs() is not public
     let mut gr: Graph<char>=Graph::<char>::new();
-    let mut path: Vec<Rc<RefCell<Node<char>>>>=Vec::<Rc<RefCell<Node<char>>>>::new();
+    let mut path: Path<char>=Path::<char>::new();
     
     let nd_one: Rc<RefCell<Node<char>>>=gr.add_node('a').unwrap();
     let nd_two: Rc<RefCell<Node<char>>>=gr.add_node('b').unwrap();
@@ -1056,7 +1062,7 @@ mod graph_tests
     assert!(path[1].borrow().val=='a');
     
     // adding on a third Node makes a path
-    let mut path: Vec<Rc<RefCell<Node<char>>>>=Vec::<Rc<RefCell<Node<char>>>>::new();
+    let mut path: Path<char>=Path::<char>::new();
     let nd_three: Rc<RefCell<Node<char>>>=gr.add_node('c').unwrap();
     gr.connect('a','c');
     assert!(gr.dfs(Rc::clone(&nd_one),&mut path));
@@ -1065,7 +1071,7 @@ mod graph_tests
     assert!(path[2].borrow().val=='c');
     
     // adding on a fourth Node at first breaks the path
-    let mut path: Vec<Rc<RefCell<Node<char>>>>=Vec::<Rc<RefCell<Node<char>>>>::new();
+    let mut path: Path<char>=Path::<char>::new();
     let nd_four: Rc<RefCell<Node<char>>>=gr.add_node('d').unwrap();
     gr.connect('a','d');
     assert!(!gr.dfs(Rc::clone(&nd_one),&mut path));
