@@ -399,13 +399,25 @@ impl<T> Graph<T>
   }
 }
 
-impl<'a,T> std::iter::IntoIterator for &'a Graph<T>
+impl<T> std::iter::IntoIterator for Graph<T>
   where T: Scalar
 {
-  type Item = &'a Rc<RefCell<Node<T>>>;
-  type IntoIter = std::slice::Iter<'a,Rc<RefCell<Node<T>>>>;
+  type Item=Rc<RefCell<Node<T>>>;
+  type IntoIter=std::vec::IntoIter<Self::Item>;
 
-  fn into_iter(self) -> std::slice::Iter<'a,Rc<RefCell<Node<T>>>>
+  fn into_iter(self) -> Self::IntoIter
+  {
+    self.nodes.into_iter()
+  }
+}
+
+impl<'a,T> IntoIterator for &'a Graph<T>
+  where T: Scalar
+{
+  type Item=&'a Rc<RefCell<Node<T>>>;
+  type IntoIter=std::slice::Iter<'a,Rc<RefCell<Node<T>>>>;
+
+  fn into_iter(self) -> Self::IntoIter
   {
     self.nodes.iter()
   }
@@ -1080,13 +1092,21 @@ mod graph_tests
 
     // iterating the Graph gives the values in the order added
     let mut itr: usize=0;
-    for nd in gr.into_iter()
+    // test shared reference iterator
+    for nd in &gr
     {
       assert!(nd.borrow().val==vals[itr]);
       itr+=1;
     }
-    // (compile time?) test that the iter doesn't move the Graph
-    gr.add_node('y');
+
+    // iterating the Graph gives the values in the order added
+    let mut itr: usize=0;
+    // test move iterator
+    for nd in gr
+    {
+      assert!(nd.borrow().val==vals[itr]);
+      itr+=1;
+    }
   }
 }
 
