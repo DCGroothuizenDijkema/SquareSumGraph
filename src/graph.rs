@@ -432,6 +432,21 @@ impl<T> std::fmt::Display for Graph<T>
   }
 }
 
+pub struct Path<T>
+  where T: Scalar
+{
+  nodes: Vec<Rc<RefCell<Node<T>>>>,
+}
+
+impl<T> Path<T>
+  where T: Scalar
+{
+  pub fn new() -> Self
+  {
+    Path{nodes:Vec::<Rc<RefCell<Node<T>>>>::new()}
+  }
+}
+
 
 //
 // Tests
@@ -1004,5 +1019,18 @@ mod graph_tests
     }
     // (compile time?) test that the iter doesn't move the Graph
     gr.add_node('y');
+  }
+}
+
+#[cfg(test)]
+mod path_tests
+{
+  use super::Path;
+  
+  #[test]
+  fn test_new()
+  {
+    let p: Path<i32>=Path::<i32>::new();
+    assert!(p.nodes.len()==0);
   }
 }
