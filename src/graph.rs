@@ -379,7 +379,7 @@ impl<T> Graph<T>
   }
 
   /// Depth-first search helper function for hamiltonian_path()
-  fn dfs(&self,nd: Rc<RefCell<Node<T>>>,path: &mut Vec<Rc<RefCell<Node<T>>>>) -> bool
+  fn dfs(&self,nd: Rc<RefCell<Node<T>>>,path: &mut Path<T>) -> bool
   {
     // if the path is as big as the Graph, a path has been found
     if path.len()==self.order() { return true; }
@@ -391,7 +391,7 @@ impl<T> Graph<T>
       if path.iter().position(|x| x.borrow().val()==adj_nd.borrow().val()).is_some() { continue; }
 
       // find a path off the adjacent Node just added to the path
-      path.push(Rc::clone(&adj_nd));
+      path.push(&adj_nd);
       if self.dfs(Rc::clone(&adj_nd),path) { return true; }
       path.pop();
     }
