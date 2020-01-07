@@ -411,7 +411,7 @@ impl<T> std::iter::IntoIterator for Graph<T>
   }
 }
 
-impl<'a,T> IntoIterator for &'a Graph<T>
+impl<'a,T> std::iter::IntoIterator for &'a Graph<T>
   where T: Scalar
 {
   type Item=&'a Rc<RefCell<Node<T>>>;
@@ -496,7 +496,7 @@ impl<T> std::iter::IntoIterator for Path<T>
   }
 }
 
-impl<'a,T> IntoIterator for &'a Path<T>
+impl<'a,T> std::iter::IntoIterator for &'a Path<T>
   where T: Scalar
 {
   type Item=&'a Rc<RefCell<Node<T>>>;
