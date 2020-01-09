@@ -86,6 +86,17 @@ impl<T> Node<T>
     Option::None
   }
 
+  /// Return a Vec of all Nodes adjacent to a Node
+  pub fn adjacent_nodes_sorted(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
+  {
+    let adj_nds: Option<Vec<Rc<RefCell<Node<T>>>>>=self.adjacent_nodes();
+    match adj_nds
+    {
+      Some(mut vec) => { vec.sort(); Option::Some(vec) },
+      None => Option::None,
+    }
+  }
+
   /// Returns the number of Edges connected to a Node
   pub fn degree(&self) -> usize
   {
@@ -632,6 +643,48 @@ mod node_tests
     assert!(adj.contains(&nd_three));
     assert!(!adj.contains(&nd_four));
     assert!(!adj.contains(&nd_one));
+
+    // check the order
+    assert!(adj[0]==nd_two);
+    assert!(adj[1]==nd_three);
+  }
+
+  #[test]
+  fn test_adjacent_nodes_sorted()
+  {
+    let mut gr: Graph<u32>=Graph::<u32>::new();
+    
+    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
+    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
+    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
+    let nd_four: Rc<RefCell<Node<u32>>>=gr.add_node(8128).unwrap();
+    
+    // check before connections that each Node has no adjacent Nodes
+    assert!(nd_one.borrow().adjacent_nodes_sorted().is_none());
+    assert!(nd_two.borrow().adjacent_nodes_sorted().is_none());
+    assert!(nd_three.borrow().adjacent_nodes_sorted().is_none());
+    assert!(nd_four.borrow().adjacent_nodes_sorted().is_none());
+
+    // connecting a Node returns Some
+    gr.connect(6,28);
+    assert!(nd_one.borrow().adjacent_nodes_sorted().is_some());
+    // connecting another Node returns Some
+    gr.connect(6,496);
+    assert!(nd_one.borrow().adjacent_nodes_sorted().is_some());
+    gr.connect(8128,28);
+    
+    // the connected Nodes are in the Vec
+    // the not connected Node is not
+    // the Node itself is not either
+    let adj: Vec<Rc<RefCell<Node<u32>>>>=nd_one.borrow().adjacent_nodes_sorted().unwrap();
+    assert!(adj.contains(&nd_two));
+    assert!(adj.contains(&nd_three));
+    assert!(!adj.contains(&nd_one));
+    assert!(!adj.contains(&nd_four));
+
+    // check the order
+    assert!(adj[0]==nd_three);
+    assert!(adj[1]==nd_two);
   }
 
   #[test]
