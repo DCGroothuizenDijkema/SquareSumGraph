@@ -120,6 +120,24 @@ impl<T> std::cmp::Eq for Node<T>
 {
 }
 
+impl<T> std::cmp::Ord for Node<T>
+  where T: Scalar
+{
+  fn cmp(&self,other: &Self) -> std::cmp::Ordering
+  {
+    self.degree().cmp(&other.degree())
+  }
+}
+
+impl<T> std::cmp::PartialOrd for Node<T>  
+  where T: Scalar
+{
+  fn partial_cmp(&self,other: &Self) -> Option<std::cmp::Ordering>
+  {
+    Some(self.cmp(other))
+  }
+}
+
 impl<T> std::fmt::Display for Node<T>
   where T: Scalar
 {
@@ -716,6 +734,25 @@ mod node_tests
     // test not equal when values differ
     assert!(nd_one!=nd_two);
     assert!(nd_three!=nd_two);
+  }
+
+  #[test]
+  fn test_ord()
+  {
+    let mut gr: Graph<char>=Graph::<char>::new();
+    let nd_one: Rc<RefCell<Node<char>>>=gr.add_node('a').unwrap();
+    let nd_two: Rc<RefCell<Node<char>>>=gr.add_node('b').unwrap();
+    let nd_three: Rc<RefCell<Node<char>>>=gr.add_node('c').unwrap();
+
+    gr.connect('a','b');
+    gr.connect('a','c');
+
+    // test not equal when values differ
+    assert!(nd_one>nd_two);
+    assert!(nd_one>nd_three);
+
+    assert!(nd_three<nd_one);
+    assert!(nd_two<nd_one);
   }
 }
 
