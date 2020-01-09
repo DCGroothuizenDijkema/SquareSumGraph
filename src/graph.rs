@@ -414,7 +414,7 @@ impl<T> Graph<T>
     if path.len()==self.order() { return true; }
     
     // scan across all adjacent Nodes
-    for adj_nd in &nd.borrow().adjacent_nodes().unwrap()
+    for adj_nd in &nd.borrow().adjacent_nodes_sorted().unwrap()
     {
       // if the adjacent Node is already in the path, ignore it: this is a hamiltonian path, after all
       if path.iter().position(|x| x.borrow().val()==adj_nd.borrow().val()).is_some() { continue; }
