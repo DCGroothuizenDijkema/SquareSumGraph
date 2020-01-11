@@ -12,3 +12,6 @@ Cargo.lock
 
 # VS Code folders
 .vscode/
+
+# data files
+data/
