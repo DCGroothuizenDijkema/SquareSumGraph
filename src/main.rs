@@ -1,46 +1,56 @@
 
-#![allow(non_snake_case)]
-#![allow(unused_must_use)]
-#![allow(unused_variables)]
+//+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+//
+//                                                                                                                                       //
+// main.rs                                                                                                                               //
+//                                                                                                                                       //
+// D. C. Groothuizen Dijkema - January, 2020                                                                                             //
+//+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+//
 
-use std::vec::Vec;
+// Execution file of the square-sum graph problem solution
+
+
+#![allow(warnings)]
+
+use std::io::Write;
 
 mod graph;
+mod squaresum;
+
 use graph::Graph;
-
-
-fn square_sum_graph(n: u32) -> Graph<u32>
-{
-  let mut gr: Graph<u32>=Graph::<u32>::new();
-
-  let max: u32=((2*n-1) as f64).sqrt().floor() as u32;
-  let pows: Vec<u32>=(2..=max).map(|x| x*x).collect();
-
-  for itr in 1..=n
-  {
-    gr.add_node(itr).unwrap();
-  }
-
-  for itr in 0..gr.order()
-  {
-    for pow in &pows
-    {
-      let val: u32=(itr as u32)+1;
-      if pow<&val { continue; }
-
-      let diff: u32=pow-val;
-      if diff==0 { continue; }
-
-      if diff<=n&&val!=diff { gr.connect(val as u32,diff); }
-    }
-  }
-  
-  gr
-}
-
+use squaresum::{square_sum_graph,square_sum_graph_append};
 
 fn main()
 {
-  let gr: Graph<u32>=square_sum_graph(15);
+  let args: Vec<String>=std::env::args().collect();
+  let mut n:u32;
+  if args.len()==1
+  {
+    // get a number from the user
+    print!("Enter n: ");
+    std::io::stdout().flush();
+    let mut guess=String::new();
+    std::io::stdin().read_line(&mut guess)
+      .expect("Failed to read line.");
+    n=match guess.trim().parse()
+    {
+      Ok(num) => num,
+      Err(_) => std::process::exit(0),
+    };
+  }
+  else
+  {
+    n=match args[1].trim().parse()
+    {
+      Ok(num) => num,
+      Err(_) => std::process::exit(0),
+    };
+  }
+  
+
+  // produce the graph and find the hamiltonian path, with timing
+  let now: std::time::Instant=std::time::Instant::now();
+  let gr: Graph<u32>=square_sum_graph(n);
+  println!("{}",gr.hamiltonian_path().unwrap_or(graph::Path::new()));
+  println!("Elapsed time: {}ms",now.elapsed().as_millis());
   println!("{}",gr);
 }
