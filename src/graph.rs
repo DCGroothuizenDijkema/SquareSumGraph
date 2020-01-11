@@ -9,16 +9,12 @@
 // Graph theory related classes, traits, and impls
 
 
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::vec::Vec;
 use std::option::Option;
 use std::result::Result;
 use std::collections::VecDeque;
-
 
 //
 // Traits
@@ -37,7 +33,6 @@ pub trait Scalar:
   + std::fmt::Display
 {
 }
-
 
 //
 // Structs
@@ -173,6 +168,7 @@ impl<T> std::fmt::Display for Edge<T>
   }
 }
 
+#[derive(Clone)]
 pub struct Graph<T>
   where T: Scalar
 {
@@ -561,7 +557,6 @@ impl<T> std::fmt::Display for Path<T>
     write!(f,"")
   }
 }
-
 
 //
 // Tests
