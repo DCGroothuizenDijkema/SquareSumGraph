@@ -554,7 +554,8 @@ impl<T> std::fmt::Display for Path<T>
       write!(f,"{}",nd.borrow());
       if itr!=self.nodes.len()-1 { write!(f, " -> "); }
     }
-    write!(f,"")
+    if self.nodes.is_empty() { write!(f,"{{}}") }
+    else { write!(f,"") }
   }
 }
 
