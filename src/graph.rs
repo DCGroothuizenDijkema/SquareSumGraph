@@ -9,12 +9,17 @@
 // Graph theory related classes, traits, and impls
 
 
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::vec::Vec;
 use std::option::Option;
 use std::result::Result;
 use std::collections::VecDeque;
+
+//
+// Types
+//
+
+type Node_t<T>=std::rc::Rc<std::cell::RefCell<Node<T>>>;
+type Edge_t<T>=std::rc::Rc<std::cell::RefCell<Edge<T>>>;
 
 //
 // Traits
@@ -42,7 +47,7 @@ pub struct Node<T>
   where T: Scalar
 {
   val: T,
-  edges: Vec<Rc<RefCell<Edge<T>>>>,
+  edges: Vec<Edge_t<T>>,
 }
 
 impl<T> Node<T>
@@ -51,7 +56,7 @@ impl<T> Node<T>
   /// Returns a new Node with a given value and an empty Vec of Edges.
   pub fn new(val: T) -> Self
   {
-    Node{val:val,edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
+    Node{val:val,edges:Vec::<Edge_t<T>>::new()}
   }
 
   /// Returns the value of a Node
@@ -61,11 +66,11 @@ impl<T> Node<T>
   }
 
   /// Return a Vec of all Nodes adjacent to a Node
-  pub fn adjacent_nodes(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
+  pub fn adjacent_nodes(&self) -> Option<Vec<Node_t<T>>>
   {
     if !self.is_isolated()
     {
-      let mut adj_nds: Vec<Rc<RefCell<Node<T>>>>=Vec::<Rc<RefCell<Node<T>>>>::new();
+      let mut adj_nds: Vec<Node_t<T>>=Vec::<Node_t<T>>::new();
       for edge in &self.edges
       {
         for connected_nd in &edge.borrow().nodes
@@ -73,7 +78,7 @@ impl<T> Node<T>
           let connected_val: T=connected_nd.borrow().val();
           // we may have found the current Node so continue
           if connected_val==self.val { continue; }
-          adj_nds.push(Rc::clone(&connected_nd));
+          adj_nds.push(std::rc::Rc::clone(&connected_nd));
         }
       }
       return Option::Some(adj_nds);
@@ -82,9 +87,9 @@ impl<T> Node<T>
   }
 
   /// Return a Vec of all Nodes adjacent to a Node
-  pub fn adjacent_nodes_sorted(&self) -> Option<Vec<Rc<RefCell<Node<T>>>>>
+  pub fn adjacent_nodes_sorted(&self) -> Option<Vec<Node_t<T>>>
   {
-    let adj_nds: Option<Vec<Rc<RefCell<Node<T>>>>>=self.adjacent_nodes();
+    let adj_nds: Option<Vec<Node_t<T>>>=self.adjacent_nodes();
     match adj_nds
     {
       Some(mut vec) => { vec.sort(); Option::Some(vec) },
@@ -156,7 +161,7 @@ impl<T> std::fmt::Display for Node<T>
 pub struct Edge<T>
   where T: Scalar
 {
-  nodes: Vec<Rc<RefCell<Node<T>>>>,
+  nodes: Vec<Node_t<T>>,
 }
 
 impl<T> std::fmt::Display for Edge<T>
@@ -172,8 +177,8 @@ impl<T> std::fmt::Display for Edge<T>
 pub struct Graph<T>
   where T: Scalar
 {
-  nodes: Vec<Rc<RefCell<Node<T>>>>,
-  edges: Vec<Rc<RefCell<Edge<T>>>>,
+  nodes: Vec<Node_t<T>>,
+  edges: Vec<Edge_t<T>>,
 }
 
 impl<T> Graph<T>
@@ -182,7 +187,7 @@ impl<T> Graph<T>
   /// Returns a new Graph with an empty Vec of Nodes and Edges.
   pub fn new() -> Self
   {
-    Graph{nodes:Vec::<Rc<RefCell<Node<T>>>>::new(),edges:Vec::<Rc<RefCell<Edge<T>>>>::new()}
+    Graph{nodes:Vec::<Node_t<T>>::new(),edges:Vec::<Edge_t<T>>::new()}
   }
 
   /// Returns true if the Graph has no Nodes, false otherwise
@@ -230,17 +235,17 @@ impl<T> Graph<T>
   ///   The value for the Node to take.
   /// 
   /// # Returns
-  /// * `res` : Result<Rc<RefCell<Node<T>>>,usize>
+  /// * `res` : Result<Node_t<T>,usize>
   ///   `res` is Result::Ok if the Node was added. res::OK contains an Rc<RefCell<>> to the Node.
   ///   `res` is Result::Err if the Node already exists. res::Err contains `val`.
-  pub fn add_node(&mut self,val: T) -> Result<Rc<RefCell<Node<T>>>,T>
+  pub fn add_node(&mut self,val: T) -> Result<Node_t<T>,T>
   {
     // check the Node doesn't already exist
     if self.find(val).is_some() { return Result::Err(val); }
 
     // construct the Node and the result from the NOde
-    let nd: Rc<RefCell<Node<T>>>=Rc::new(RefCell::new(Node::new(val)));
-    let res: Result<Rc<RefCell<Node<T>>>,T>=Result::Ok(Rc::clone(&nd));
+    let nd: Node_t<T>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(val)));
+    let res: Result<Node_t<T>,T>=Result::Ok(std::rc::Rc::clone(&nd));
     // add the Node to the Graph
     self.nodes.push(nd);
     res
@@ -253,22 +258,22 @@ impl<T> Graph<T>
   ///   The values of the two Nodes to connect.
   /// 
   /// # Returns
-  /// * `res` : Result<Rc<RefCell<Edge<T>>>,T>
+  /// * `res` : Result<Edge_t<T>,T>
   ///   `res` is Result::Ok if the Nodes were is_connected. res::OK contains an Rc<RefCell<>> to the Edge connecting the Nodes.
   ///   `res` is Result::Err if either of the Nodes do not exist or if the Nodes are already connected. res::Err contains Option::Some if a
   ///     Node did not exist, and the value of Option::Some is the value of the first Node which did not exist. res::Err contains 
   ///     Option::None if the Nodes are already connected.
-  pub fn connect(&mut self,val_one: T,val_two: T) -> Result<Rc<RefCell<Edge<T>>>,Option<T>>
+  pub fn connect(&mut self,val_one: T,val_two: T) -> Result<Edge_t<T>,Option<T>>
   {
     // check both Nodes exist
-    let nd_one: Option<Rc<RefCell<Node<T>>>>=self.find(val_one);
+    let nd_one: Option<Node_t<T>>=self.find(val_one);
     if nd_one.is_none() { return Result::Err(Option::Some(val_one)); }
-    let nd_two: Option<Rc<RefCell<Node<T>>>>=self.find(val_two);
+    let nd_two: Option<Node_t<T>>=self.find(val_two);
     if nd_two.is_none() { return Result::Err(Option::Some(val_two)); }
 
     // retrieve the Nodes
-    let nd_one: Rc<RefCell<Node<T>>>=nd_one.unwrap();
-    let nd_two: Rc<RefCell<Node<T>>>=nd_two.unwrap();
+    let nd_one: Node_t<T>=nd_one.unwrap();
+    let nd_two: Node_t<T>=nd_two.unwrap();
 
     // check if the Nodes are already is_connected
     // but if one of them is isolated, we don't need to bother
@@ -281,11 +286,11 @@ impl<T> Graph<T>
     }
 
     // construct the Edge from the two Nodes and the result from the Edge
-    let edge: Rc<RefCell<Edge<T>>>=Rc::new(RefCell::new(Edge{nodes:vec![Rc::clone(&nd_one),Rc::clone(&nd_two)]}));
-    let res: Result<Rc<RefCell<Edge<T>>>,Option<T>>=Result::Ok(Rc::clone(&edge));
+    let edge: Edge_t<T>=std::rc::Rc::new(std::cell::RefCell::new(Edge{nodes:vec![std::rc::Rc::clone(&nd_one),std::rc::Rc::clone(&nd_two)]}));
+    let res: Result<Edge_t<T>,Option<T>>=Result::Ok(std::rc::Rc::clone(&edge));
     // add the Edge to the two Nodes
-    nd_one.borrow_mut().edges.push(Rc::clone(&edge));
-    nd_two.borrow_mut().edges.push(Rc::clone(&edge));
+    nd_one.borrow_mut().edges.push(std::rc::Rc::clone(&edge));
+    nd_two.borrow_mut().edges.push(std::rc::Rc::clone(&edge));
     // add the Edge to the Graph
     self.edges.push(edge);
     res
@@ -305,13 +310,13 @@ impl<T> Graph<T>
 
     // now just do a breath first search
     let mut visited: Vec<bool>=vec![false;self.order()];
-    let mut q: VecDeque<Rc<RefCell<Node<T>>>>=VecDeque::<Rc<RefCell<Node<T>>>>::new();
+    let mut q: VecDeque<Node_t<T>>=VecDeque::<Node_t<T>>::new();
     // add the first Noe and mark as visited
-    q.push_back(Rc::clone(&self.nodes[0]));
+    q.push_back(std::rc::Rc::clone(&self.nodes[0]));
     visited[0]=true;
     while !q.is_empty()
     {
-      let nd: Rc<RefCell<Node<T>>>=q.pop_front().unwrap();
+      let nd: Node_t<T>=q.pop_front().unwrap();
       if nd.borrow().is_isolated() { continue; }
       let nd_val: T=nd.borrow().val();
       // search all Nodes connected to the current Node
@@ -323,7 +328,7 @@ impl<T> Graph<T>
         if !visited[idx]
         {
           visited[idx]=true;
-          q.push_back(Rc::clone(&connected_nd));
+          q.push_back(std::rc::Rc::clone(&connected_nd));
         }
       }
     }
@@ -334,7 +339,7 @@ impl<T> Graph<T>
   /// Find a Hamiltonian path in a Graph
   /// 
   /// # Returns
-  /// * `path` : Option<Vec<Rc<RefCell<Node<T>>>>>
+  /// * `path` : Option<Vec<Node_t<T>>>
   ///   `path` is Option::Some if a Hamiltonian path exists. path::Some contains a Path of the path.
   ///   `path` is Option::None if no Hamiltonian path exists.
   pub fn hamiltonian_path(&self) -> Option<Path<T>>
@@ -357,12 +362,12 @@ impl<T> Graph<T>
 
     // now do a depth first search
     // either get the first leaf node or the first node
-    let init_node: Rc<RefCell<Node<T>>> = Rc::clone(&self.nodes[first_leaf_node]);
+    let init_node: Node_t<T> = std::rc::Rc::clone(&self.nodes[first_leaf_node]);
     // initialise the path with the first node
     let mut path: Path<T>=Path::<T>::new();
     path.push(&init_node);
     // do the search
-    let res: bool=self.dfs(Rc::clone(&init_node),&mut path);
+    let res: bool=self.dfs(std::rc::Rc::clone(&init_node),&mut path);
 
     if res { return Option::Some(path); }
 
@@ -376,14 +381,14 @@ impl<T> Graph<T>
   ///   The value of the Node to find.
   /// 
   /// # Returns
-  /// * `res` : Option<Rc<RefCell<Node<T>>>>
+  /// * `res` : Option<Node_t<T>>
   ///   `res` is Option::Some if the Node was found. res::Some contains an Rc<RefCell<>> to the Node.
   ///   `res` is Option::None if the Node could not be found.
-  fn find(&self,val: T) -> Option<Rc<RefCell<Node<T>>>>
+  fn find(&self,val: T) -> Option<Node_t<T>>
   {
     for nd in &self.nodes
     {
-      if nd.borrow().val==val { return Option::Some(Rc::clone(&nd)); }
+      if nd.borrow().val==val { return Option::Some(std::rc::Rc::clone(&nd)); }
     }
     Option::None
   }
@@ -404,7 +409,7 @@ impl<T> Graph<T>
   }
 
   /// Depth-first search helper function for hamiltonian_path()
-  fn dfs(&self,nd: Rc<RefCell<Node<T>>>,path: &mut Path<T>) -> bool
+  fn dfs(&self,nd: Node_t<T>,path: &mut Path<T>) -> bool
   {
     // if the path is as big as the Graph, a path has been found
     if path.len()==self.order() { return true; }
@@ -417,7 +422,7 @@ impl<T> Graph<T>
 
       // find a path off the adjacent Node just added to the path
       path.push(&adj_nd);
-      if self.dfs(Rc::clone(&adj_nd),path) { return true; }
+      if self.dfs(std::rc::Rc::clone(&adj_nd),path) { return true; }
       path.pop();
     }
     false
@@ -427,7 +432,7 @@ impl<T> Graph<T>
 impl<T> std::iter::IntoIterator for Graph<T>
   where T: Scalar
 {
-  type Item=Rc<RefCell<Node<T>>>;
+  type Item=Node_t<T>;
   type IntoIter=std::vec::IntoIter<Self::Item>;
 
   fn into_iter(self) -> Self::IntoIter
@@ -439,8 +444,8 @@ impl<T> std::iter::IntoIterator for Graph<T>
 impl<'a,T> std::iter::IntoIterator for &'a Graph<T>
   where T: Scalar
 {
-  type Item=&'a Rc<RefCell<Node<T>>>;
-  type IntoIter=std::slice::Iter<'a,Rc<RefCell<Node<T>>>>;
+  type Item=&'a Node_t<T>;
+  type IntoIter=std::slice::Iter<'a,Node_t<T>>;
 
   fn into_iter(self) -> Self::IntoIter
   {
@@ -472,7 +477,7 @@ impl<T> std::fmt::Display for Graph<T>
 pub struct Path<T>
   where T: Scalar
 {
-  nodes: Vec<Rc<RefCell<Node<T>>>>,
+  nodes: Vec<Node_t<T>>,
 }
 
 impl<T> Path<T>
@@ -481,7 +486,7 @@ impl<T> Path<T>
   /// Return a new Path with an empty Vec of Nodes
   pub fn new() -> Self
   {
-    Path{nodes:Vec::<Rc<RefCell<Node<T>>>>::new()}
+    Path{nodes:Vec::<Node_t<T>>::new()}
   }
 
   /// Return the length of the Path
@@ -491,9 +496,9 @@ impl<T> Path<T>
   }
 
   /// Push a new Node onto the Path
-  pub fn push(&mut self,nd: &Rc<RefCell<Node<T>>>)
+  pub fn push(&mut self,nd: &Node_t<T>)
   {
-    self.nodes.push(Rc::clone(&nd));
+    self.nodes.push(std::rc::Rc::clone(&nd));
   }
 
   /// Pop the last Node off the Path
@@ -503,7 +508,7 @@ impl<T> Path<T>
   }
 
   /// Return an iterator over the Path
-  pub fn iter(&self) -> std::slice::Iter<Rc<RefCell<Node<T>>>>
+  pub fn iter(&self) -> std::slice::Iter<Node_t<T>>
   {
     self.nodes.iter()
   }
@@ -512,7 +517,7 @@ impl<T> Path<T>
 impl<T> std::iter::IntoIterator for Path<T>
   where T: Scalar
 {
-  type Item=Rc<RefCell<Node<T>>>;
+  type Item=Node_t<T>;
   type IntoIter=std::vec::IntoIter<Self::Item>;
 
   fn into_iter(self) -> Self::IntoIter
@@ -524,8 +529,8 @@ impl<T> std::iter::IntoIterator for Path<T>
 impl<'a,T> std::iter::IntoIterator for &'a Path<T>
   where T: Scalar
 {
-  type Item=&'a Rc<RefCell<Node<T>>>;
-  type IntoIter=std::slice::Iter<'a,Rc<RefCell<Node<T>>>>;
+  type Item=&'a Node_t<T>;
+  type IntoIter=std::slice::Iter<'a,Node_t<T>>;
 
   fn into_iter(self) -> Self::IntoIter
   {
@@ -536,7 +541,7 @@ impl<'a,T> std::iter::IntoIterator for &'a Path<T>
 impl<T> std::ops::Index<usize> for Path<T>
   where T: Scalar
 {
-  type Output=Rc<RefCell<Node<T>>>;
+  type Output=Node_t<T>;
 
   fn index(&self,ind: usize) -> &Self::Output
   {
@@ -566,8 +571,7 @@ impl<T> std::fmt::Display for Path<T>
 #[cfg(test)]
 mod node_tests
 {
-  use super::{Graph,Node};
-  use super::{Rc,RefCell};
+  use super::{Graph,Node,Node_t};
 
   #[test]
   fn test_new()
@@ -613,10 +617,10 @@ mod node_tests
   {
     let mut gr: Graph<u32>=Graph::<u32>::new();
     
-    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
-    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
-    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
-    let nd_four: Rc<RefCell<Node<u32>>>=gr.add_node(8128).unwrap();
+    let nd_one: Node_t<u32>=gr.add_node(6).unwrap();
+    let nd_two: Node_t<u32>=gr.add_node(28).unwrap();
+    let nd_three: Node_t<u32>=gr.add_node(496).unwrap();
+    let nd_four: Node_t<u32>=gr.add_node(8128).unwrap();
     
     // check before connections that each Node has no adjacent Nodes
     assert!(nd_one.borrow().adjacent_nodes().is_none());
@@ -634,7 +638,7 @@ mod node_tests
     // the connected Nodes are in the Vec
     // the not connected Node is not
     // the Node itself is not either
-    let adj: Vec<Rc<RefCell<Node<u32>>>>=nd_one.borrow().adjacent_nodes().unwrap();
+    let adj: Vec<Node_t<u32>>=nd_one.borrow().adjacent_nodes().unwrap();
     assert!(adj.contains(&nd_two));
     assert!(adj.contains(&nd_three));
     assert!(!adj.contains(&nd_four));
@@ -650,10 +654,10 @@ mod node_tests
   {
     let mut gr: Graph<u32>=Graph::<u32>::new();
     
-    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
-    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
-    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
-    let nd_four: Rc<RefCell<Node<u32>>>=gr.add_node(8128).unwrap();
+    let nd_one: Node_t<u32>=gr.add_node(6).unwrap();
+    let nd_two: Node_t<u32>=gr.add_node(28).unwrap();
+    let nd_three: Node_t<u32>=gr.add_node(496).unwrap();
+    let nd_four: Node_t<u32>=gr.add_node(8128).unwrap();
     
     // check before connections that each Node has no adjacent Nodes
     assert!(nd_one.borrow().adjacent_nodes_sorted().is_none());
@@ -672,7 +676,7 @@ mod node_tests
     // the connected Nodes are in the Vec
     // the not connected Node is not
     // the Node itself is not either
-    let adj: Vec<Rc<RefCell<Node<u32>>>>=nd_one.borrow().adjacent_nodes_sorted().unwrap();
+    let adj: Vec<Node_t<u32>>=nd_one.borrow().adjacent_nodes_sorted().unwrap();
     assert!(adj.contains(&nd_two));
     assert!(adj.contains(&nd_three));
     assert!(!adj.contains(&nd_one));
@@ -688,11 +692,11 @@ mod node_tests
   {
     let mut gr: Graph<u32>=Graph::<u32>::new();
     
-    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
-    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
-    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
-    let nd_four: Rc<RefCell<Node<u32>>>=gr.add_node(8128).unwrap();
-    let nd_five: Rc<RefCell<Node<u32>>>=gr.add_node(33550336).unwrap();
+    let nd_one: Node_t<u32>=gr.add_node(6).unwrap();
+    let nd_two: Node_t<u32>=gr.add_node(28).unwrap();
+    let nd_three: Node_t<u32>=gr.add_node(496).unwrap();
+    let nd_four: Node_t<u32>=gr.add_node(8128).unwrap();
+    let nd_five: Node_t<u32>=gr.add_node(33550336).unwrap();
 
     let val: [u32;3]=[28,496,8128];
 
@@ -725,12 +729,12 @@ mod node_tests
   {
     let mut gr: Graph<u32>=Graph::<u32>::new();
     
-    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
+    let nd_one: Node_t<u32>=gr.add_node(6).unwrap();
     assert!(nd_one.borrow().is_isolated());
     // adding Nodes keeps is isoalted
-    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
+    let nd_two: Node_t<u32>=gr.add_node(28).unwrap();
     assert!(nd_one.borrow().is_isolated());
-    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
+    let nd_three: Node_t<u32>=gr.add_node(496).unwrap();
     assert!(nd_one.borrow().is_isolated());
     
     // connecting the other Nodes keeps it isolated
@@ -749,12 +753,12 @@ mod node_tests
   {
     let mut gr: Graph<u32>=Graph::<u32>::new();
     
-    let nd_one: Rc<RefCell<Node<u32>>>=gr.add_node(6).unwrap();
+    let nd_one: Node_t<u32>=gr.add_node(6).unwrap();
     assert!(!nd_one.borrow().is_leaf());
     // adding Nodes keeps it not a leaf Node
-    let nd_two: Rc<RefCell<Node<u32>>>=gr.add_node(28).unwrap();
+    let nd_two: Node_t<u32>=gr.add_node(28).unwrap();
     assert!(!nd_one.borrow().is_leaf());
-    let nd_three: Rc<RefCell<Node<u32>>>=gr.add_node(496).unwrap();
+    let nd_three: Node_t<u32>=gr.add_node(496).unwrap();
     assert!(!nd_one.borrow().is_leaf());
     
     // connecting the other Nodes keeps it not a leaf Node
@@ -789,9 +793,9 @@ mod node_tests
   fn test_ord()
   {
     let mut gr: Graph<char>=Graph::<char>::new();
-    let nd_one: Rc<RefCell<Node<char>>>=gr.add_node('a').unwrap();
-    let nd_two: Rc<RefCell<Node<char>>>=gr.add_node('b').unwrap();
-    let nd_three: Rc<RefCell<Node<char>>>=gr.add_node('c').unwrap();
+    let nd_one: Node_t<char>=gr.add_node('a').unwrap();
+    let nd_two: Node_t<char>=gr.add_node('b').unwrap();
+    let nd_three: Node_t<char>=gr.add_node('c').unwrap();
 
     gr.connect('a','b');
     gr.connect('a','c');
@@ -808,8 +812,8 @@ mod node_tests
 #[cfg(test)]
 mod graph_tests
 {
-  use super::{Rc,Option,Result,RefCell};
-  use super::{Graph,Node,Edge,Path};
+  use super::{Option,Result};
+  use super::{Graph,Node,Edge,Path,Node_t,Edge_t};
 
   #[test]
   fn test_new()
@@ -946,20 +950,20 @@ mod graph_tests
   {
     // test a valid insertion
     let mut gr=Graph::<usize>::new();
-    let res: Result<Rc<RefCell<Node<usize>>>,usize>=gr.add_node(2);
+    let res: Result<Node_t<usize>,usize>=gr.add_node(2);
     assert!(res.is_ok());
     assert!(res.unwrap().borrow().val==2);
     assert!(gr.nodes[0].borrow().val==2);
     assert!(gr.nodes.len()==1);
     
     // test an invalid insertion
-    let res: Result<Rc<RefCell<Node<usize>>>,usize>=gr.add_node(2);
+    let res: Result<Node_t<usize>,usize>=gr.add_node(2);
     assert!(res.is_err());
     assert!(res.err().unwrap()==2);
     assert!(gr.nodes.len()==1);
     
     // test another valid insertion
-    let res: Result<Rc<RefCell<Node<usize>>>,usize>=gr.add_node(1729);
+    let res: Result<Node_t<usize>,usize>=gr.add_node(1729);
     assert!(res.is_ok());
     assert!(res.unwrap().borrow().val==1729);
     assert!(gr.nodes.len()==2);
@@ -971,36 +975,36 @@ mod graph_tests
   {
     // test error when no nodes are added
     let mut gr=Graph::<i32>::new();
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,-98);
+    let res: Result<Edge_t<i32>,Option<i32>>=gr.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
     assert!(res.err().unwrap().unwrap()==173);
     assert!(gr.edges.is_empty());
     
     // test error when one node has been added
-    let nd_one: Rc<RefCell<Node<i32>>>=gr.add_node(173).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,-98);
+    let nd_one: Node_t<i32>=gr.add_node(173).unwrap();
+    let res: Result<Edge_t<i32>,Option<i32>>=gr.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the second value
     assert!(res.err().unwrap().unwrap()==-98);
     assert!(gr.edges.is_empty());
 
     // test no error when both nodes have been added
-    let nd_two: Rc<RefCell<Node<i32>>>=gr.add_node(-98).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,-98);
+    let nd_two: Node_t<i32>=gr.add_node(-98).unwrap();
+    let res: Result<Edge_t<i32>,Option<i32>>=gr.connect(173,-98);
     assert!(gr.edges.len()==1); // one edge should have been added
     assert!(res.is_ok()); // Result should be Ok
-    let edge_one: Rc<RefCell<Edge<i32>>>=res.unwrap();
+    let edge_one: Edge_t<i32>=res.unwrap();
     // Nodes should have been added to Edge in order
     assert!(&*nd_one.borrow() as *const Node<i32> == &*edge_one.borrow().nodes[0].borrow() as *const Node<i32>);
     assert!(&*nd_two.borrow() as *const Node<i32> == &*edge_one.borrow().nodes[1].borrow() as *const Node<i32>);
     
     // test no error when both nodes have been added
-    let nd_three: Rc<RefCell<Node<i32>>>=gr.add_node(1).unwrap();
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,1);
+    let nd_three: Node_t<i32>=gr.add_node(1).unwrap();
+    let res: Result<Edge_t<i32>,Option<i32>>=gr.connect(173,1);
     assert!(gr.edges.len()==2); // one edge should have been added
     assert!(res.is_ok()); // Result should be Ok
-    let edge_two: Rc<RefCell<Edge<i32>>>=res.unwrap();
+    let edge_two: Edge_t<i32>=res.unwrap();
     // Nodes should have been added to Edge in order
     assert!(&*nd_one.borrow() as *const Node<i32> == &*edge_two.borrow().nodes[0].borrow() as *const Node<i32>);
     assert!(&*nd_three.borrow() as *const Node<i32> == &*edge_two.borrow().nodes[1].borrow() as *const Node<i32>);
@@ -1018,13 +1022,13 @@ mod graph_tests
     assert!(&*nd_three.borrow().edges[0].borrow() as *const Edge<i32> == &*edge_two.borrow()  as *const Edge<i32>);
 
     // test error when trying to connect already connected Nodes
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(173,-98);
+    let res: Result<Edge_t<i32>,Option<i32>>=gr.connect(173,-98);
     assert!(res.is_err());
     // the Err Result should be the first value
     assert!(res.err().unwrap()==Option::None);
     assert!(gr.edges.len()==2);
     // and the other way around
-    let res: Result<Rc<RefCell<Edge<i32>>>,Option<i32>>=gr.connect(-98,173);
+    let res: Result<Edge_t<i32>,Option<i32>>=gr.connect(-98,173);
     assert!(res.is_err());
     // the Err Result should be the first value
     assert!(res.err().unwrap()==Option::None);
@@ -1098,13 +1102,13 @@ mod graph_tests
     // values that have been added can be found
     for &val in vals.iter()
     {
-      let res: Option<Rc<RefCell<Node<f64>>>>=gr.find(val);
+      let res: Option<Node_t<f64>>=gr.find(val);
       assert!(res.is_some());
-      let nd: Rc<RefCell<Node<f64>>>=res.unwrap();
+      let nd: Node_t<f64>=res.unwrap();
       assert!(nd.borrow().val==val);
     }
     // a value that hasn't been added cannot be found
-    let res: Option<Rc<RefCell<Node<f64>>>>=gr.find(2.93);
+    let res: Option<Node_t<f64>>=gr.find(2.93);
     assert!(res.is_none());
   }
 
@@ -1138,36 +1142,37 @@ mod graph_tests
     let mut gr: Graph<char>=Graph::<char>::new();
     let mut path: Path<char>=Path::<char>::new();
     
-    let nd_one: Rc<RefCell<Node<char>>>=gr.add_node('a').unwrap();
-    let nd_two: Rc<RefCell<Node<char>>>=gr.add_node('b').unwrap();
+    let nd_one: Node_t<char>=gr.add_node('a').unwrap();
+    let nd_two: Node_t<char>=gr.add_node('b').unwrap();
     
     // connecting Nodes one and two makes a path
     gr.connect('a','b');
-    assert!(gr.dfs(Rc::clone(&nd_one),&mut path));
+    assert!(gr.dfs(std::rc::Rc::clone(&nd_one),&mut path));
     assert!(path[0].borrow().val=='b');
     assert!(path[1].borrow().val=='a');
     
     // adding on a third Node makes a path
     let mut path: Path<char>=Path::<char>::new();
-    let nd_three: Rc<RefCell<Node<char>>>=gr.add_node('c').unwrap();
+    let nd_three: Node_t<char>=gr.add_node('c').unwrap();
     gr.connect('a','c');
-    assert!(gr.dfs(Rc::clone(&nd_one),&mut path));
+    assert!(gr.dfs(std::rc::Rc::clone(&nd_one),&mut path));
     assert!(path[0].borrow().val=='b');
     assert!(path[1].borrow().val=='a');
     assert!(path[2].borrow().val=='c');
     
     // adding on a fourth Node at first breaks the path
     let mut path: Path<char>=Path::<char>::new();
-    let nd_four: Rc<RefCell<Node<char>>>=gr.add_node('d').unwrap();
+    let nd_four: Node_t<char>=gr.add_node('d').unwrap();
     gr.connect('a','d');
-    assert!(!gr.dfs(Rc::clone(&nd_one),&mut path));
+    assert!(!gr.dfs(std::rc::Rc::clone(&nd_one),&mut path));
     // but connecting it up properly makes the path again
     gr.connect('b','d');
-    assert!(gr.dfs(Rc::clone(&nd_one),&mut path));
-    assert!(path[0].borrow().val=='b');
-    assert!(path[1].borrow().val=='d');
-    assert!(path[2].borrow().val=='a');
-    assert!(path[3].borrow().val=='c');
+    assert!(gr.dfs(std::rc::Rc::clone(&nd_one),&mut path));
+    println!("{}",path);
+    assert!(path[0].borrow().val=='c');
+    assert!(path[1].borrow().val=='a');
+    assert!(path[2].borrow().val=='b');
+    assert!(path[3].borrow().val=='d');
   }
 
   #[test]
@@ -1205,7 +1210,7 @@ mod graph_tests
 #[cfg(test)]
 mod path_tests
 {
-  use super::{Path,Node,Rc,RefCell};
+  use super::{Path,Node,Node_t};
   
   #[test]
   fn test_new()
@@ -1222,9 +1227,9 @@ mod path_tests
     let mut p: Path<char>=Path::<char>::new();
     assert!(p.len()==0);
     
-    let nd_one: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('a')));
-    let nd_two: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('b')));
-    let nd_three: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('c')));
+    let nd_one: Node_t<char>=std::rc::Rc::new(std::cell::RefCell::new(Node::new('a')));
+    let nd_two: Node_t<char>=std::rc::Rc::new(std::cell::RefCell::new(Node::new('b')));
+    let nd_three: Node_t<char>=std::rc::Rc::new(std::cell::RefCell::new(Node::new('c')));
     
     // pushing Nodes increments the length
     p.push(&nd_one);
@@ -1240,9 +1245,9 @@ mod path_tests
   {
     let mut p: Path<f64>=Path::<f64>::new();
     
-    let nd_one: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(0.11)));
-    let nd_two: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(2.718)));
-    let nd_three: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(3.14)));
+    let nd_one: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(0.11)));
+    let nd_two: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(2.718)));
+    let nd_three: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(3.14)));
 
     p.push(&nd_one);
     p.push(&nd_two);
@@ -1259,9 +1264,9 @@ mod path_tests
   {
     let mut p: Path<f64>=Path::<f64>::new();
     
-    let nd_one: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(0.11)));
-    let nd_two: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(2.718)));
-    let nd_three: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(3.14)));
+    let nd_one: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(0.11)));
+    let nd_two: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(2.718)));
+    let nd_three: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(3.14)));
 
     p.push(&nd_one);
     p.push(&nd_two);
@@ -1284,10 +1289,10 @@ mod path_tests
     let vals: [char;4]=['a','b','c','z'];
 
     // make some nodes
-    let nd_one: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('a')));
-    let nd_two: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('b')));
-    let nd_three: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('c')));
-    let nd_four: Rc<RefCell<Node<char>>>=Rc::new(RefCell::new(Node::new('z')));
+    let nd_one: Node_t<char>=std::rc::Rc::new(std::cell::RefCell::new(Node::new('a')));
+    let nd_two: Node_t<char>=std::rc::Rc::new(std::cell::RefCell::new(Node::new('b')));
+    let nd_three: Node_t<char>=std::rc::Rc::new(std::cell::RefCell::new(Node::new('c')));
+    let nd_four: Node_t<char>=std::rc::Rc::new(std::cell::RefCell::new(Node::new('z')));
     
     // add the Nodes
     p.push(&nd_one);
@@ -1319,9 +1324,9 @@ mod path_tests
   {
     let mut p: Path<f64>=Path::<f64>::new();
     
-    let nd_one: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(0.11)));
-    let nd_two: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(2.718)));
-    let nd_three: Rc<RefCell<Node<f64>>>=Rc::new(RefCell::new(Node::new(3.14)));
+    let nd_one: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(0.11)));
+    let nd_two: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(2.718)));
+    let nd_three: Node_t<f64>=std::rc::Rc::new(std::cell::RefCell::new(Node::new(3.14)));
 
     p.push(&nd_one);
     p.push(&nd_two);
