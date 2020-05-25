@@ -31,8 +31,8 @@ pub trait Scalar:
   + std::fmt::Display
 {
 }
-  
-  impl<T> Scalar for T where T:
+
+impl<T> Scalar for T where T:
   std::cmp::PartialEq
   + std::marker::Copy
   + std::fmt::Display
@@ -89,8 +89,7 @@ impl<T> Node<T>
   /// Return a Vec of all Nodes adjacent to a Node
   pub fn adjacent_nodes_sorted(&self) -> Option<Vec<Node_t<T>>>
   {
-    let adj_nds: Option<Vec<Node_t<T>>>=self.adjacent_nodes();
-    match adj_nds
+    match self.adjacent_nodes()
     {
       Some(mut vec) => { vec.sort(); Option::Some(vec) },
       None => Option::None,
@@ -386,11 +385,11 @@ impl<T> Graph<T>
   ///   `res` is Option::None if the Node could not be found.
   fn find(&self,val: T) -> Option<Node_t<T>>
   {
-    for nd in &self.nodes
+    match self.idx(val)
     {
-      if nd.borrow().val==val { return Option::Some(std::rc::Rc::clone(&nd)); }
+      Some(idx) => Some(std::rc::Rc::clone(&self.nodes[idx])),
+      None => None
     }
-    Option::None
   }
 
   /// Get the index of a node in a Graph
@@ -583,7 +582,7 @@ mod node_tests
     assert!(node.edges.is_empty());
 
     let node=Node::<bool>::new(true);
-    assert!(node.val==true);
+    assert!(node.val);
     assert!(node.edges.is_empty());
 
     let node=Node::<f64>::new(3.14);
